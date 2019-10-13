@@ -9,14 +9,11 @@ int main() {
     Particle particle1(0.001, 0, 0, 10.0, 15.0, 15.0, 5, 10, 3.41, 0.00001);
     Particle particle2(-0.001, 0, 0, 20.0, 15.0, 15.0, 5, 10, 3.41, 0.00001);
     int i = 0;
-    fstream fout("particle1.log");
+    ofstream fout("particle1.log");
     while (i <= 5500000) {
         particle1.movement();
         particle2.movement();
-        // cout << "particle1: ";
-        particle1.output(cout);
-        // cout << "particle2: ";
-        // particle2.print_position();
+        particle1.output(fout);
         particle1.calculate_acceleration(particle2);
         particle2.calculate_acceleration(particle1); 
         // particle1.interact(particle2);
@@ -29,5 +26,6 @@ int main() {
         }
         ++i;
     }
+    fout << flush;
     fout.close();
 }
