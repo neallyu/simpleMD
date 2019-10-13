@@ -43,6 +43,10 @@ public:
         a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
     }
 
+    void output(fstream& fout) {
+        fout << pos_x << v_x << a_x << endl;
+    }
+
     // interact will be defined in derived class
     virtual void interact(const Particle&) { }
 
@@ -55,12 +59,6 @@ public:
         v_x += a_x * time_interval;
         v_y += a_y * time_interval;
         v_z += a_z * time_interval;
-    }
-
-
-    void print_position() {
-        ofstream fout("particle1.log");
-        fout << pos_x << "\t" << v_x << "\t" << a_x << endl;
     }
 
     // position
