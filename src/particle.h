@@ -1,6 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include <fstream>
 #include <vector>
 #include <cmath>
 #include <stdexcept>
@@ -38,8 +39,8 @@ public:
             pow((pos_y - other.pos_y), 2) +
             pow((pos_z - other.pos_z), 2));
         a_x = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_x - pos_x) / mass;
-        // a_y = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_y - pos_y) / mass;
-        // a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
+        a_y = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_y - pos_y) / mass;
+        a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
     }
 
     // interact will be defined in derived class
@@ -58,7 +59,8 @@ public:
 
 
     void print_position() {
-        cout << pos_x << "\t" << v_x << "\t" << a_x << endl;
+        ofstream fout("particle1.log");
+        fout << pos_x << "\t" << v_x << "\t" << a_x << endl;
     }
 
     // position
