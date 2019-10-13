@@ -1,6 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -43,8 +44,12 @@ public:
         a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
     }
 
-    void output(fstream& fout) {
-        fout << pos_x << v_x << a_x << endl;
+    // void output(fstream& fout) {
+    //     fout << pos_x << v_x << a_x << "\n";
+    // }
+
+    void output(iostream &iout) {
+        iout << pos_x << v_x << a_x << "\n"
     }
 
     // interact will be defined in derived class

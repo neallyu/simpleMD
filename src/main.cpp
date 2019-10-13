@@ -14,11 +14,11 @@ int main() {
         particle1.movement();
         particle2.movement();
         // cout << "particle1: ";
-        particle1.output(fout);
+        particle1.output(cout);
         // cout << "particle2: ";
         // particle2.print_position();
         particle1.calculate_acceleration(particle2);
-        particle2.calculate_acceleration(particle1);
+        particle2.calculate_acceleration(particle1); 
         // particle1.interact(particle2);
         // particle2.interact(particle1);
         if (!box1.isInBox(particle1)) {
