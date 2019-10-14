@@ -12,10 +12,9 @@ int main() {
     // Particle particle2(-0.001, 0, 0, 20.0, 15.0, 15.0, 5, 10, 3.41, 0.00001);
     int i = 0;
     Ensemble ensemble1(10);
-    while (i <= 10000) {
-        if (i % 100 == 0) {
-            ensemble1[2].print();
-        }
+    ofstream fout("particle1.log");
+    while (i <= 5500000) {
+        ensemble1[5].output(fout);
         for (auto particle_ptr = ensemble1.ensemble.begin(); particle_ptr != ensemble1.ensemble.end(); ++particle_ptr) {
             ensemble1.interact(*particle_ptr);
             particle_ptr->movement();
@@ -23,6 +22,8 @@ int main() {
         }
         ++i;
     }
+    fout << flush;
+    fout.close();
 
 
 
