@@ -10,6 +10,10 @@
 using namespace std;
 
 class Particle {
+
+friend class Ensemble;
+friend class Box;
+
 public:
     // Initializer, receive the initial status of the particle
     Particle(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
@@ -24,12 +28,14 @@ public:
                 }
             }
 
-    //check if two particles occupy same position
-    bool operator==(const Particle &rhs) {
-        return 
-            pos_x == rhs.pos_x &&
-            pos_y == rhs.pos_y &&
-            pos_z == rhs.pos_z;
+    Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
+        mass(other.mass), sigma(other.sigma), epsilon(other.epsilon), time_interval(other.time_interval) { }
+
+    // check if two particles are the same
+    bool operator!=(const Particle &other) {
+        return !(pos_x == other.pos_x && pos_y == other.pos_y && pos_z == other.pos_z &&
+                v_x == other.v_x && v_y == other.v_y && v_z == other.v_z &&
+                a_x == other.a_x && a_y == other.a_y && a_z == other.a_z);
     }
 
     // calculate acceleration of the particle from interaction
@@ -38,13 +44,24 @@ public:
             pow((pos_x - other.pos_x), 2) + 
             pow((pos_y - other.pos_y), 2) +
             pow((pos_z - other.pos_z), 2));
-        a_x = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_x - pos_x) / mass;
-        a_y = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_y - pos_y) / mass;
-        a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
+        a_x = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 
+            6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_x - pos_x) / mass;
+        a_y = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 
+            6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_y - pos_y) / mass;
+        a_z = -4 * epsilon * (12 * pow(sigma, 12) / pow(distance_value, 13) - 
+            6 * pow(sigma, 6) / pow(distance_value, 7)) * (other.pos_z - pos_z) / mass;
     }
 
+    // output to file
     void output(ofstream& fout) {
-        fout << pos_x << "\t" << v_x << "\t" << a_x << "\n";
+        fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y 
+            << "\t" << v_z << "\t" << a_x << a_y << "\t" << a_z <<"\n";
+    }
+
+    // print on terminal
+    void print() {
+        cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x << "\tposition_y: " << pos_y << 
+            "\tv_y: " << v_y << "\ta_y: " << a_y << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z << endl;
     }
 
     // execute movement
@@ -58,6 +75,8 @@ public:
         v_z += a_z * time_interval;
     }
 
+protected:
+
     // position
     double pos_x;
     double pos_y;
@@ -68,7 +87,6 @@ public:
     double v_y;
     double v_z;
 
-protected:
     // acceleration
     double a_x;
     double a_y;
@@ -81,6 +99,7 @@ protected:
     double sigma;
 
     double time_interval;
+
 };
 
 
