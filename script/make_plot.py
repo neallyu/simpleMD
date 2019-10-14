@@ -5,11 +5,11 @@ import sys
 def read_data(path, filename):
     data = np.loadtxt(path + filename)
     pos_x = data[:, 0]
-    pos_x_sample = []
-    for i, j in pos_x:
-        if i % 100 == 0:
-            pos_x_sample.append(j)
-    return pos_x_sample
+    # pos_x_sample = []
+    # for i, j in pos_x:
+    #     if i % 100 == 0:
+    #         pos_x_sample.append(j)
+    return pos_x
 
 
 path = "../src/"
@@ -21,4 +21,4 @@ ax = fig.add_subplot(111)
 
 ax.plot(pos_x, color="orange")
 
-plt.savefig(path + filename + ".png")
+plt.savefig(path + filename + "_pos_x.png")
