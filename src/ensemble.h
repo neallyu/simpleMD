@@ -15,10 +15,11 @@ friend class Box;
 public:
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle(i + 1, i + 1, i + 1, i + 1, i + 1, i + 1, 5, 10, 3.41, 1e-5));
+            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
         }
     }
 
+    // use ensemble[index] to call particle's method
     Particle& operator[] (const int index) {
         return ensemble[index];
     }
@@ -46,11 +47,11 @@ public:
         }
     }
 
+    vector<Particle> ensemble;
 
 private:
 
     unsigned particle_number;
-    vector<Particle> ensemble;
 };
 
 #endif

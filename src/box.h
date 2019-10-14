@@ -38,7 +38,20 @@ public:
 
     // rebounce if particle hits the wall of box (ensemble version)
     void rebounce(Ensemble &ensemble) {
-
+        for (auto particle_ptr = ensemble.ensemble.begin(); particle_ptr != ensemble.ensemble.end(); ++particle_ptr) {
+            if ((particle_ptr->pos_x >= dim1 && particle_ptr->v_x > 0) || 
+                (particle_ptr->pos_x <= 0 && particle_ptr->v_x < 0) ) {
+                particle_ptr->v_x = -particle_ptr->v_x;
+            }
+            if ((particle_ptr->pos_y >= dim2 && particle_ptr->v_y > 0) || 
+                (particle_ptr->pos_y <= 0 && particle_ptr->v_y < 0) ) {
+                particle_ptr->v_y = -particle_ptr->v_y;
+            }
+            if ((particle_ptr->pos_z >= dim3 && particle_ptr->v_z > 0) || 
+                (particle_ptr->pos_z <= 0 && particle_ptr->v_z < 0) ) {
+                particle_ptr->v_z = -particle_ptr->v_z;
+            }
+        }
     }
 
 private:
