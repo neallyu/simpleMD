@@ -19,7 +19,7 @@ public:
     Particle(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
         double _mass, double _epsilon, double _sigma, double _time_interval): 
             v_x(_v_x), v_y(_v_y), v_z(_v_z), pos_x(_pos_x), pos_y(_pos_y), pos_z(_pos_z),
-            mass(_mass), sigma(_sigma), epsilon(_epsilon), time_interval(_time_interval) {
+            mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval) {
                 if (pos_x * pos_y * pos_z <= 0) {
                     throw runtime_error("Error: negative initial position");
                 }
@@ -29,14 +29,14 @@ public:
             }
 
     Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
-        mass(other.mass), sigma(other.sigma), epsilon(other.epsilon), time_interval(other.time_interval) { }
+        mass(other.mass), epsilon(other.epsilon), sigma(other.sigma), time_interval(other.time_interval) { }
 
     // check if two particles are the same
-    bool operator!=(const Particle &other) {
-        return !(pos_x == other.pos_x && pos_y == other.pos_y && pos_z == other.pos_z &&
-                v_x == other.v_x && v_y == other.v_y && v_z == other.v_z &&
-                a_x == other.a_x && a_y == other.a_y && a_z == other.a_z);
-    }
+    // bool operator==(const Particle &other) {
+    //     return pos_x == other.pos_x && pos_y == other.pos_y && pos_z == other.pos_z &&
+    //             v_x == other.v_x && v_y == other.v_y && v_z == other.v_z &&
+    //             a_x == other.a_x && a_y == other.a_y && a_z == other.a_z;
+    // }
 
     // calculate acceleration of the particle from interaction
     void interact(const Particle& other) {
@@ -77,15 +77,16 @@ public:
 
 protected:
 
+    // velocity
+    double v_x;
+    double v_y;
+    double v_z;
+
     // position
     double pos_x;
     double pos_y;
     double pos_z;
 
-    // velocity
-    double v_x;
-    double v_y;
-    double v_z;
 
     // acceleration
     double a_x;

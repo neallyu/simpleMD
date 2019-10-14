@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include "particle.h"
+#include "ensemble.h"
 
 class Box {
 public:
@@ -19,7 +20,7 @@ public:
             particle.pos_x >= 0 && particle.pos_y >= 0 && particle.pos_z >= 0;
     }
 
-    // rebounce if particle hits the wall of box
+    // rebounce if particle hits the wall of box (particle version)
     void rebounce(Particle &particle) {
         if ((particle.pos_x >= dim1 && particle.v_x > 0) || 
             (particle.pos_x <= 0 && particle.v_x < 0) ) {
@@ -33,6 +34,11 @@ public:
             (particle.pos_z <= 0 && particle.v_z < 0) ) {
             particle.v_z = -particle.v_z;
         }
+    }
+
+    // rebounce if particle hits the wall of box (ensemble version)
+    void rebounce(Ensemble &ensemble) {
+
     }
 
 private:

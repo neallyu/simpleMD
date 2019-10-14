@@ -9,9 +9,12 @@
 using namespace std;
 
 class Ensemble {
+
+friend class Box;
+
 public:
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
-        for (int i = 0; i < particle_number; ++i) {
+        for (unsigned i = 0; i < particle_number; ++i) {
             ensemble.push_back(Particle(i + 1, i + 1, i + 1, i + 1, i + 1, i + 1, 5, 10, 3.41, 1e-5));
         }
     }
@@ -27,12 +30,12 @@ public:
         particle.a_z = 0;
         double distance_value = 0;
         for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
-            if (*particle_ptr != particle) {
+            if (&(*particle_ptr) != &particle) {
                 distance_value = sqrt(
                     pow((particle_ptr->pos_x - particle.pos_x), 2) + 
                     pow((particle_ptr->pos_y - particle.pos_y), 2) +
                     pow((particle_ptr->pos_z - particle.pos_z), 2));
-                    
+
                 particle.a_x += -4 * particle.epsilon * (12 * pow(particle.sigma, 12) / pow(distance_value, 13) - 
                     6 * pow(particle.sigma, 6) / pow(distance_value, 7)) * (particle_ptr->pos_x - particle.pos_x) / particle.mass;
                 particle.a_y += -4 * particle.epsilon * (12 * pow(particle.sigma, 12) / pow(distance_value, 13) - 
@@ -45,6 +48,7 @@ public:
 
 
 private:
+
     unsigned particle_number;
     vector<Particle> ensemble;
 };

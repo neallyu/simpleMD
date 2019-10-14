@@ -5,3 +5,5 @@
 *.json
 .vs/*
 main
+script/venv/*
+script/.idea/*
