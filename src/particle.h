@@ -55,7 +55,7 @@ public:
     // output to file
     void output(ofstream& fout) {
         fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y 
-            << "\t" << v_z << "\t" << a_x << a_y << "\t" << a_z <<"\n";
+            << "\t" << v_z << "\t" << a_x << "\t" << a_y << "\t" << a_z <<"\n";
     }
 
     // print on terminal
