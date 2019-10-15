@@ -65,7 +65,7 @@ public:
     vector<Particle> ensemble;
 
     void output(ofstream& fout) {
-        fout << ensemble_potential << ensemble_kinetic << (ensemble_potential + ensemble_kinetic) << "\n";
+        fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
     }
 
     double ensemble_potential;

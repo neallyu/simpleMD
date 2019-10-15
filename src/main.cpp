@@ -18,7 +18,6 @@ int main() {
         ensemble1.ensemble_kinetic = 0;
         ensemble1.ensemble_potential = 0;
         // ensemble1[5].output(fout);
-        ensemble1.output(fout2);
         for (auto particle_ptr = ensemble1.ensemble.begin(); particle_ptr != ensemble1.ensemble.end(); ++particle_ptr) {
             ensemble1.interact(*particle_ptr);
             particle_ptr->kinetic();
@@ -27,6 +26,7 @@ int main() {
             particle_ptr->movement();
             box1.rebounce(ensemble1);
         }
+        ensemble1.output(fout2);
         ++i;
     }
     // fout << flush;
