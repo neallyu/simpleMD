@@ -2,6 +2,7 @@
 #define ENSEMBLE_H
 
 #include <vector>
+#include <fstream>
 // #include <cstdlib>
 // #include <ctime>
 #include "particle.h"
@@ -63,9 +64,18 @@ public:
 
     vector<Particle> ensemble;
 
+    void output(ofstream& fout) {
+        fout << ensemble_potential << ensemble_kinetic << (ensemble_potential + ensemble_kinetic) << "\n";
+    }
+
+    double ensemble_potential;
+
+    double ensemble_kinetic;
+
 private:
 
     unsigned particle_number;
+
 };
 
 #endif
