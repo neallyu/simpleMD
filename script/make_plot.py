@@ -4,21 +4,21 @@ import sys
 
 def read_data(path, filename):
     data = np.loadtxt(path + filename)
-    pos_x = data[:, 0]
-    pos_y = data[:, 1]
-    pos_z = data[:, 2]
+    # pos_x = data[:, 0]
+    # pos_y = data[:, 1]
+    # pos_z = data[:, 2]
+    #
+    # v_x = data[:, 3]
+    # v_y = data[:, 4]
+    # v_z = data[:, 5]
+    #
+    # a_x = data[:, 6]
+    # a_y = data[:, 7]
+    # a_z = data[:, 8]
 
-    v_x = data[:, 3]
-    v_y = data[:, 4]
-    v_z = data[:, 5]
-
-    a_x = data[:, 6]
-    a_y = data[:, 7]
-    a_z = data[:, 8]
-
-    potential = data[:, 9]
-    kinetic = data[:, 10]
-    total_energy = data[:, 11]
+    potential = data[:, 0]
+    kinetic = data[:, 1]
+    total_energy = data[:, 2]
     return potential, kinetic, total_energy
 
 

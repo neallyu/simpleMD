@@ -83,7 +83,7 @@ public:
 
     // calculate the current kinetic energy of the particle
     void kinetic() {
-        kinetic_value = 0.5 * mass * sqrt( pow(v_x, 2) + pow(v_y, 2) + pow(v_z, 2) );
+        kinetic_value = 0.5 * mass * (pow(v_x, 2) + pow(v_y, 2) + pow(v_z, 2));
     }
 
     // calculate potential between two particles (particle version)
