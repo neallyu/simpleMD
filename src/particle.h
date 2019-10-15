@@ -1,6 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
+#include <iostream>
 #include <fstream>
 #include <cmath>
 #include <stdexcept>
@@ -58,14 +59,15 @@ public:
 
     // output to file
     void output(ofstream& fout) {
-        fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y 
-            << "\t" << v_z << "\t" << a_x << "\t" << a_y << "\t" << a_z <<"\n";
+        fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y  << "\t" << v_z << "\t" 
+            << a_x << "\t" << a_y << "\t" << a_z << "\t" << potential_value << "\t" << kinetic_value << "\t" << total_energy() <<"\n";
     }
 
     // print on terminal
     void print() {
-        cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x << "\tposition_y: " << pos_y << 
-            "\tv_y: " << v_y << "\ta_y: " << a_y << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z << endl;
+        cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x << "\tposition_y: " << pos_y 
+            << "\tv_y: " << v_y << "\ta_y: " << a_y << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z 
+            << "\tpotential_value: " << potential_value << "\tkinetic value: " << kinetic_value << "\ttotal energy: " << total_energy() << endl;
     }
 
     // execute movement
@@ -80,19 +82,19 @@ public:
     }
 
     // calculate the current kinetic energy of the particle
-    double kinetic() const {
-        return 0.5 * mass * sqrt( pow(v_x, 2) + pow(v_y, 2) + pow(v_z, 2) );
+    void kinetic() {
+        kinetic_value = 0.5 * mass * sqrt( pow(v_x, 2) + pow(v_y, 2) + pow(v_z, 2) );
     }
 
     // calculate potential between two particles (particle version)
     // note: must call "interact" before calculate the potential
-    double potential(const Particle& other) {
-        return 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
+    void potential(const Particle& other) {
+        potential_value = 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
     }
 
     // calculate total energy (particle version)
-    double total_energy(const Particle& other) {
-        return kinetic() + potential(other);
+    double total_energy() {
+        return kinetic_value + potential_value;
     }
 
 
@@ -113,6 +115,10 @@ protected:
     double a_z;
 
     double distance_value;
+
+    double potential_value;
+
+    double kinetic_value;
 
     double mass;
 
