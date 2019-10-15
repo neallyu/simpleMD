@@ -65,12 +65,12 @@ public:
     // execute movement
     void movement() {
         // uniformly accelerated motion
-        pos_x += v_x * time_interval + 0.5 * a_x * pow(time_interval, 2);
-        pos_y += v_y * time_interval + 0.5 * a_y * pow(time_interval, 2);
-        pos_z += v_z * time_interval + 0.5 * a_z * pow(time_interval, 2);
-        v_x += a_x * time_interval;
-        v_y += a_y * time_interval;
-        v_z += a_z * time_interval;
+        pos_x += v_x * time_interval + 0.5 * a_x * time_interval * time_interval;
+        pos_y += v_y * time_interval + 0.5 * a_y * time_interval * time_interval;
+        pos_z += v_z * time_interval + 0.5 * a_z * time_interval * time_interval;
+        v_x += (a_x + former_a_x) * 0.5 * time_interval;
+        v_y += (a_y + former_a_y) * 0.5 * time_interval;
+        v_z += (a_z + former_a_z) * 0.5 * time_interval;
     }
 
     // rebounce if particle hits the wall of box (particle version)
@@ -121,6 +121,11 @@ protected:
     double a_y;
     double a_z;
 
+    // former accerleration for velocity verlet
+    double former_a_x;
+    double former_a_y;
+    double former_a_z;
+
     double distance_value;
     double potential_value;
     double kinetic_value;
@@ -134,32 +139,32 @@ protected:
 };
 
 
-class Particle_Energy_Compensated: public Particle {
+// class Particle_Energy_Compensated: public Particle {
 
-friend class Ensemble;
+// friend class Ensemble;
 
-public:
+// public:
 
-    // Initializer, receive the initial status of the particle
-    Particle_Energy_Compensated(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
-        double _mass, double _epsilon, double _sigma, double _time_interval): 
-        Particle(_v_x, _v_y, _v_z, _pos_x, _pos_y, _pos_z, _mass, _epsilon, _sigma, _time_interval) { }
+//     // Initializer, receive the initial status of the particle
+//     Particle_Energy_Compensated(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
+//         double _mass, double _epsilon, double _sigma, double _time_interval): 
+//         Particle(_v_x, _v_y, _v_z, _pos_x, _pos_y, _pos_z, _mass, _epsilon, _sigma, _time_interval) { }
 
-    void energy_compensate() {
-        kinetic_value = former_potential_value + former_kinetic_value - potential_value;
+//     void energy_compensate() {
+//         kinetic_value = former_potential_value + former_kinetic_value - potential_value;
 
-        v_x = v_x * sqrt(kinetic_value / former_kinetic_value);
-        v_y = v_y * sqrt(kinetic_value / former_kinetic_value);
-        v_z = v_z * sqrt(kinetic_value / former_kinetic_value);
-    }
+//         v_x = v_x * sqrt(kinetic_value / former_kinetic_value);
+//         v_y = v_y * sqrt(kinetic_value / former_kinetic_value);
+//         v_z = v_z * sqrt(kinetic_value / former_kinetic_value);
+//     }
 
-protected:
+// protected:
 
-    // former potential
-    double former_potential_value;
+//     // former potential
+//     double former_potential_value;
 
-    // former kinetic
-    double former_kinetic_value;
-};
+//     // former kinetic
+//     double former_kinetic_value;
+// };
 
 #endif
