@@ -12,8 +12,6 @@ using namespace std;
 
 class Ensemble {
 
-friend class Box;
-
 public:
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
@@ -81,7 +79,7 @@ public:
                 ensemble_potential += particle_ptr->potential_value;
                 ensemble_kinetic += particle_ptr->kinetic_value;
                 particle_ptr->movement();
-                box.rebounce(*particle_ptr);
+                particle_ptr->rebounce(box);
             }
             output(ensemble_out);
             ++i;

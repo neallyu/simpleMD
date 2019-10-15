@@ -5,13 +5,13 @@
 #include <fstream>
 #include <cmath>
 #include <stdexcept>
+#include "box.h"
 
 using namespace std;
 
 class Particle {
 
 friend class Ensemble;
-friend class Box;
 
 public:
     // Initializer, receive the initial status of the particle
@@ -79,6 +79,22 @@ public:
         v_x += a_x * time_interval;
         v_y += a_y * time_interval;
         v_z += a_z * time_interval;
+    }
+
+    // rebounce if particle hits the wall of box (particle version)
+    void rebounce(Box& box) {
+        if ((pos_x >= box.dim1 && v_x > 0) || 
+            (pos_x <= 0 && v_x < 0) ) {
+            v_x = -v_x;
+        }
+        if ((pos_y >= box.dim2 && v_y > 0) || 
+            (pos_y <= 0 && v_y < 0) ) {
+            v_y = -v_y;
+        }
+        if ((pos_z >= box.dim3 && v_z > 0) || 
+            (pos_z <= 0 && v_z < 0) ) {
+            v_z = -v_z;
+        }
     }
 
     // calculate the current kinetic energy of the particle
