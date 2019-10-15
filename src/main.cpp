@@ -17,6 +17,7 @@ int main() {
         ensemble1[5].output(fout);
         for (auto particle_ptr = ensemble1.ensemble.begin(); particle_ptr != ensemble1.ensemble.end(); ++particle_ptr) {
             ensemble1.interact(*particle_ptr);
+            ensemble1[5].kinetic();
             particle_ptr->movement();
             box1.rebounce(ensemble1);
         }
@@ -25,27 +26,4 @@ int main() {
     fout << flush;
     fout.close();
 
-
-
-
-    // ofstream fout("particle1.log");
-    // while (i <= 5500000) {
-    //     particle1.movement();
-    //     particle2.movement();
-    //     particle1.output(fout);
-
-    //     particle1.interact(particle2);
-    //     particle2.interact(particle1);
-    //     if (!box1.isInBox(particle1)) {
-    //         box1.rebounce(particle1);
-    //     }
-    //     if (!box1.isInBox(particle2)) {
-    //         box1.rebounce(particle2);
-    //     }
-    //     ++i;
-    // }
-
-
-    // fout << flush;
-    // fout.close();
 }
