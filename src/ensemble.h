@@ -5,6 +5,7 @@
 #include <fstream>
 // #include <cstdlib>
 // #include <ctime>
+#include "box.h"
 #include "particle.h"
 
 using namespace std;
@@ -68,13 +69,32 @@ public:
         fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
     }
 
-    double ensemble_potential;
-
-    double ensemble_kinetic;
+    void execute(const unsigned time, const unsigned index, Box& box, ofstream& particle_out, ofstream& ensemble_out) {
+        int i = 0;
+        while (i <= time) {
+            ensemble_kinetic = 0;
+            ensemble_potential = 0;
+            ensemble[index].output(particle_out);
+            for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
+                interact(*particle_ptr);
+                particle_ptr->kinetic();
+                ensemble_potential += particle_ptr->potential_value;
+                ensemble_kinetic += particle_ptr->kinetic_value;
+                particle_ptr->movement();
+                box.rebounce(*this);
+            }
+            output(ensemble_out);
+            ++i;
+        }
+    }
 
 private:
 
     unsigned particle_number;
+
+    double ensemble_potential;
+
+    double ensemble_kinetic;
 
 };
 
