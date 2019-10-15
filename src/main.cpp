@@ -11,7 +11,7 @@ int main() {
     Box box1(30, 30, 30);
 
     // ensemble with x particles;
-    Ensemble ensemble1(2);
+    Ensemble ensemble1(3);
 
     // define output file name
     ofstream particle_out("particle1.log");
