@@ -97,6 +97,9 @@ public:
         return kinetic_value + potential_value;
     }
 
+    double potential_value;
+
+    double kinetic_value;
 
 protected:
     // position
@@ -115,10 +118,6 @@ protected:
     double a_z;
 
     double distance_value;
-
-    double potential_value;
-
-    double kinetic_value;
 
     double mass;
 

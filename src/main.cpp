@@ -22,8 +22,8 @@ int main() {
         for (auto particle_ptr = ensemble1.ensemble.begin(); particle_ptr != ensemble1.ensemble.end(); ++particle_ptr) {
             ensemble1.interact(*particle_ptr);
             particle_ptr->kinetic();
-            ensemble1.ensemble_potential += particle_ptr->potential;
-            ensemble1.ensemble_kinetic += particle_ptr->kinetic;
+            ensemble1.ensemble_potential += particle_ptr->potential_value;
+            ensemble1.ensemble_kinetic += particle_ptr->kinetic_value;
             particle_ptr->movement();
             box1.rebounce(ensemble1);
         }
