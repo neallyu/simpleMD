@@ -35,25 +35,8 @@ public:
         for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
             // exclude the current particle
             if (&(*particle_ptr) != &particle) {
-                // distance_value = sqrt(
-                //     pow((particle_ptr->pos_x - particle.pos_x), 2) + 
-                //     pow((particle_ptr->pos_y - particle.pos_y), 2) +
-                //     pow((particle_ptr->pos_z - particle.pos_z), 2));
-                // particle.a_x += -4 * particle.epsilon * (12 * pow(particle.sigma, 12) / pow(distance_value, 13) - 
-                //     6 * pow(particle.sigma, 6) / pow(distance_value, 7)) * (particle_ptr->pos_x - particle.pos_x) / particle.mass;
-                // particle.a_y += -4 * particle.epsilon * (12 * pow(particle.sigma, 12) / pow(distance_value, 13) - 
-                //     6 * pow(particle.sigma, 6) / pow(distance_value, 7)) * (particle_ptr->pos_y - particle.pos_y) / particle.mass;
-                // particle.a_z += -4 * particle.epsilon * (12 * pow(particle.sigma, 12) / pow(distance_value, 13) - 
-                //     6 * pow(particle.sigma, 6) / pow(distance_value, 7)) * (particle_ptr->pos_z - particle.pos_z) / particle.mass;
-
-                // another version of F(r) function to see if the speed is faster than before
                 particle.calculate_distance_value(*particle_ptr);
-                particle.a_x += -4 * particle.epsilon * (12 * pow(particle.sigma / particle.distance_value, 12) / particle.distance_value - 
-                    6 * pow(particle.sigma / particle.distance_value, 6) / particle.distance_value ) * (particle_ptr->pos_x - particle.pos_x) / particle.mass;
-                particle.a_y += -4 * particle.epsilon * (12 * pow(particle.sigma / particle.distance_value, 12) / particle.distance_value - 
-                    6 * pow(particle.sigma / particle.distance_value, 6) / particle.distance_value ) * (particle_ptr->pos_y - particle.pos_y) / particle.mass;
-                particle.a_z += -4 * particle.epsilon * (12 * pow(particle.sigma / particle.distance_value, 12) / particle.distance_value - 
-                    6 * pow(particle.sigma / particle.distance_value, 6) / particle.distance_value ) * (particle_ptr->pos_z - particle.pos_z) / particle.mass;
+                particle.interact(*particle_ptr);
 
                 // caluculate potential value
                 particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );

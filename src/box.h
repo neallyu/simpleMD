@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 
+using namespace std;
+
 class Box {
 
 friend class Particle;
