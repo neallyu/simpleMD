@@ -81,7 +81,7 @@ public:
                 ensemble_potential += particle_ptr->potential_value;
                 ensemble_kinetic += particle_ptr->kinetic_value;
                 particle_ptr->movement();
-                box.rebounce(*this);
+                box.rebounce(*particle_ptr);
             }
             output(ensemble_out);
             ++i;
