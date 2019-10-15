@@ -13,9 +13,15 @@ using namespace std;
 class Ensemble {
 
 public:
+    // Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
+    //     for (unsigned i = 0; i < particle_number; ++i) {
+    //         ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
+    //     }
+    // }
+
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
+            ensemble.push_back(Particle_Energy_Compensated((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
         }
     }
 
@@ -44,7 +50,40 @@ public:
         }
     }
 
-    vector<Particle> ensemble;
+
+    void interact(Particle_Energy_Compensated& particle) {
+        particle.a_x = 0;
+        particle.a_y = 0;
+        particle.a_z = 0;
+        double distance_value = 0;
+        particle.potential_value = 0;
+        for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
+            // exclude the current particle
+            if (&(*particle_ptr) != &particle) {
+                particle.calculate_distance_value(*particle_ptr);
+                particle.interact(*particle_ptr);
+
+                // caluculate potential value
+                particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );
+            }
+        }
+        particle.former_potential_value = particle.potential_value;
+        particle.kinetic();
+        particle.former_kinetic_value = particle.kinetic_value;
+    }
+
+
+    void energy_compensate(Particle_Energy_Compensated& particle) {
+        particle.potential_value = 0;
+        for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
+            // exclude the current particle
+            if (&(*particle_ptr) != &particle) {
+                particle.calculate_distance_value(*particle_ptr);
+                particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );
+            }
+        }
+    }
+
 
     void output(ofstream& fout) {
         fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
@@ -58,10 +97,11 @@ public:
             ensemble[index].output(particle_out);
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
                 interact(*particle_ptr);
-                particle_ptr->kinetic();
+                particle_ptr->movement();
+                energy_compensate(*particle_ptr);
+                *particle_ptr->energy_compensate();
                 ensemble_potential += particle_ptr->potential_value;
                 ensemble_kinetic += particle_ptr->kinetic_value;
-                particle_ptr->movement();
                 particle_ptr->rebounce(box);
             }
             output(ensemble_out);
@@ -70,6 +110,8 @@ public:
     }
 
 private:
+    
+    vector<Particle_Energy_Compensated> ensemble;
 
     unsigned particle_number;
 

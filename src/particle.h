@@ -39,7 +39,7 @@ public:
     }
 
     // calculate acceleration of the particle from interaction (particle version)
-    virtual void interact(const Particle& other) {
+    void interact(const Particle& other) {
         calculate_distance_value(other);
         a_x += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_x - pos_x) / mass;
@@ -140,34 +140,15 @@ friend class Ensemble;
 
 public:
 
-    // calculate acceleration of the particle from interaction and do energy compensation (particle version)
-    void interact(const Particle_Energy_Compensated& other) {
-        calculate_distance_value(other);
-        a_x += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_x - pos_x) / mass;
-        a_y += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_y - pos_y) / mass;
-        a_z += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_z - pos_z) / mass;
+    void energy_compensate() {
+        kinetic_value = former_potential_value + former_kinetic_value - potential_value;
+
+        v_x = v_x * sqrt(kinetic_value / former_kinetic_value);
+        v_y = v_y * sqrt(kinetic_value / former_kinetic_value);
+        v_z = v_z * sqrt(kinetic_value / former_kinetic_value);
     }
-
-    void energy_compensate(const Particle_Energy_Compensated& other) {
-        
-    }
-
-
 
 protected:
-
-    // former position
-    double former_pos_x;
-    double former_pos_y;
-    double former_pos_z;
-
-    // former velocity
-    double former_v_x;
-    double former_v_y;
-    double former_v_z;
 
     // former potential
     double former_potential_value;
