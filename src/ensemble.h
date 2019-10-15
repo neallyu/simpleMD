@@ -13,15 +13,26 @@ using namespace std;
 class Ensemble {
 
 public:
-    // Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
-    //     for (unsigned i = 0; i < particle_number; ++i) {
-    //         ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
-    //     }
-    // }
 
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
+            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-6));
+        }
+
+        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+            particle->a_x = 0;
+            particle->a_y = 0;
+            particle->a_z = 0;
+            for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
+                // exclude the current particle
+                if (&(*particle_ptr) != &(*particle)) {
+                    particle->calculate_distance_value(*particle_ptr);
+                    particle->interact(*particle_ptr);
+                }
+            }
+            particle->former_a_x = particle->a_x;
+            particle->former_a_y = particle->a_y;
+            particle->former_a_z = particle->a_z;
         }
     }
 
@@ -48,49 +59,18 @@ public:
                 particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );
             }
         }
+        particle.kinetic();
+        particle.movement();
         particle.former_a_x = particle.a_x;
         particle.former_a_y = particle.a_y;
         particle.former_a_z = particle.a_z;
     }
 
 
-    // void interact(Particle_Energy_Compensated& particle) {
-    //     particle.a_x = 0;
-    //     particle.a_y = 0;
-    //     particle.a_z = 0;
-    //     double distance_value = 0;
-    //     particle.potential_value = 0;
-    //     for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
-    //         // exclude the current particle
-    //         if (&(*particle_ptr) != &particle) {
-    //             particle.calculate_distance_value(*particle_ptr);
-    //             particle.interact(*particle_ptr);
-
-    //             // caluculate potential value
-    //             particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );
-    //         }
-    //     }
-    //     particle.former_potential_value = particle.potential_value;
-    //     particle.kinetic();
-    //     particle.former_kinetic_value = particle.kinetic_value;
-    // }
-
-
-    // void energy_compensate(Particle_Energy_Compensated& particle) {
-    //     particle.potential_value = 0;
-    //     for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
-    //         // exclude the current particle
-    //         if (&(*particle_ptr) != &particle) {
-    //             particle.calculate_distance_value(*particle_ptr);
-    //             particle.potential_value += 4 * particle.epsilon * ( pow(particle.sigma / particle.distance_value, 12) - pow(particle.sigma / particle.distance_value, 6) );
-    //         }
-    //     }
-    // }
-
-
     void output(ofstream& fout) {
         fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
     }
+
 
     void execute(const unsigned time, const unsigned index, Box& box, ofstream& particle_out, ofstream& ensemble_out) {
         int i = 0;
@@ -100,8 +80,6 @@ public:
             ensemble[index].output(particle_out);
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
                 interact(*particle_ptr);
-                particle_ptr->movement();
-
                 ensemble_potential += particle_ptr->potential_value;
                 ensemble_kinetic += particle_ptr->kinetic_value;
                 particle_ptr->rebounce(box);

@@ -33,9 +33,10 @@ public:
     // calculate the currenct distance between two particle
     void calculate_distance_value(const Particle& other) {
         distance_value = sqrt(
-            pow((pos_x - other.pos_x), 2) + 
-            pow((pos_y - other.pos_y), 2) +
-            pow((pos_z - other.pos_z), 2));
+            (pos_x - other.pos_x) * (pos_x - other.pos_x) + 
+            (pos_y - other.pos_y) * (pos_y - other.pos_y) +
+            (pos_z - other.pos_z) * (pos_z - other.pos_z)
+        );
     }
 
     // calculate acceleration of the particle from interaction (particle version)
@@ -91,7 +92,7 @@ public:
 
     // calculate the current kinetic energy of the particle
     void kinetic() {
-        kinetic_value = 0.5 * mass * (pow(v_x, 2) + pow(v_y, 2) + pow(v_z, 2));
+        kinetic_value = 0.5 * mass * (v_x * v_x + v_y * v_y + v_z * v_z);
     }
 
     // calculate potential between two particles (particle version)
@@ -138,33 +139,5 @@ protected:
 
 };
 
-
-// class Particle_Energy_Compensated: public Particle {
-
-// friend class Ensemble;
-
-// public:
-
-//     // Initializer, receive the initial status of the particle
-//     Particle_Energy_Compensated(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
-//         double _mass, double _epsilon, double _sigma, double _time_interval): 
-//         Particle(_v_x, _v_y, _v_z, _pos_x, _pos_y, _pos_z, _mass, _epsilon, _sigma, _time_interval) { }
-
-//     void energy_compensate() {
-//         kinetic_value = former_potential_value + former_kinetic_value - potential_value;
-
-//         v_x = v_x * sqrt(kinetic_value / former_kinetic_value);
-//         v_y = v_y * sqrt(kinetic_value / former_kinetic_value);
-//         v_z = v_z * sqrt(kinetic_value / former_kinetic_value);
-//     }
-
-// protected:
-
-//     // former potential
-//     double former_potential_value;
-
-//     // former kinetic
-//     double former_kinetic_value;
-// };
 
 #endif
