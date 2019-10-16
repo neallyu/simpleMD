@@ -16,7 +16,7 @@ public:
 
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 10, 2, 1e-5));
+            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 5, 5, 1e-8));
         }
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
@@ -41,8 +41,8 @@ public:
         return ensemble[index];
     }
 
-    // calculate the total acceleration from other particles (ensemble version)
 
+    // basic interation step of velocity verlet
     void iteration(Particle& particle) {
         particle.movement();
         particle.a_x = 0;
@@ -62,6 +62,8 @@ public:
         particle.former_a_z = particle.a_z;
         particle.velocity();
         particle.kinetic();
+        ensemble_potential += particle.potential_value;
+        ensemble_kinetic += particle.kinetic_value;
     }
 
 
@@ -78,8 +80,6 @@ public:
             ensemble[index].output(particle_out);
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
                 this->iteration(*particle_ptr);
-                ensemble_potential += particle_ptr->potential_value;
-                ensemble_kinetic += particle_ptr->kinetic_value;
                 particle_ptr->rebounce(box);
             }
             output(ensemble_out);

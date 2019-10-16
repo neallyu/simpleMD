@@ -11,14 +11,14 @@ int main() {
     Box box1(30, 30, 30);
 
     // ensemble with x particles;
-    Ensemble ensemble1(3);
+    Ensemble ensemble1(2);
 
     // define output file name
     ofstream particle_out("particle1.log");
     ofstream ensemble_out("ensemble1.log");
 
     // define time, which particle to show, box and output file names
-    ensemble1.execute(5e5, 2, box1, particle_out, ensemble_out);
+    ensemble1.execute(5e5, 1, box1, particle_out, ensemble_out);
 
     particle_out << flush;
     ensemble_out << flush;
