@@ -16,7 +16,7 @@ public:
 
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 5, 2, 1e-5));
+            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 5, 5, 1e-5));
         }
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
@@ -26,7 +26,6 @@ public:
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
                 // exclude the current particle
                 if (&(*particle_ptr) != &(*particle)) {
-                    particle->calculate_distance_value(*particle_ptr);
                     particle->acceleration(*particle_ptr);
                 }
             }
@@ -53,7 +52,6 @@ public:
         for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
             // exclude the current particle
             if (&(*particle_ptr) != &particle) {
-                particle.calculate_distance_value(*particle_ptr);
                 particle.acceleration(*particle_ptr);
             }
         }

@@ -18,30 +18,18 @@ public:
     Particle(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
         double _mass, double _epsilon, double _sigma, double _time_interval): 
             v_x(_v_x), v_y(_v_y), v_z(_v_z), pos_x(_pos_x), pos_y(_pos_y), pos_z(_pos_z),
-            mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval) {
+            mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval), 
+            sigma_6(sigma * sigma * sigma * sigma * sigma * sigma), sigma_12(sigma_6 * sigma_6) {
                 if (pos_x * pos_y * pos_z <= 0) {
                     throw runtime_error("Error: negative initial position");
                 }
                 if (mass <= 0) {
                     throw runtime_error("Error: invalid mass");
                 }
-                sigma_6 = sigma * sigma * sigma * sigma * sigma * sigma;
-                sigma_12 = sigma_6 * sigma_6;
             }
 
     Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
         mass(other.mass), epsilon(other.epsilon), sigma(other.sigma), time_interval(other.time_interval) { }
-
-    // calculate the currenct distance between two particle
-    void calculate_distance_value(const Particle& other) {
-        distance_value = sqrt(
-            (other.pos_x - pos_x) * (other.pos_x - pos_x) + 
-            (other.pos_y - pos_y) * (other.pos_y - pos_y) +
-            (other.pos_z - pos_z) * (other.pos_z - pos_z)
-        );
-        distance_value_6 = distance_value * distance_value * distance_value * distance_value * distance_value * distance_value;
-        distance_value_12 = distance_value_6 * distance_value_6;
-    }
 
     // execute movement
     void movement() {
@@ -54,7 +42,13 @@ public:
     // calculate acceleration of the particle from interaction (particle version)
     // to save the resource, the potential of current partcile is calculated at the same time
     void acceleration(const Particle& other) {
-        calculate_distance_value(other);
+        distance_value = sqrt(
+            (other.pos_x - pos_x) * (other.pos_x - pos_x) + 
+            (other.pos_y - pos_y) * (other.pos_y - pos_y) +
+            (other.pos_z - pos_z) * (other.pos_z - pos_z)
+        );
+        distance_value_6 = distance_value * distance_value * distance_value * distance_value * distance_value * distance_value;
+        distance_value_12 = distance_value_6 * distance_value_6;
         a_x -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
             (other.pos_x - pos_x) / (distance_value * distance_value) / mass;
         a_y -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
