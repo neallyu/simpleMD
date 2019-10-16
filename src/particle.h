@@ -19,7 +19,9 @@ public:
         double _mass, double _epsilon, double _sigma, double _time_interval): 
             v_x(_v_x), v_y(_v_y), v_z(_v_z), pos_x(_pos_x), pos_y(_pos_y), pos_z(_pos_z),
             mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval), 
-            sigma_6(sigma * sigma * sigma * sigma * sigma * sigma), sigma_12(sigma_6 * sigma_6) {
+            sigma_6(_sigma * _sigma * _sigma * _sigma * _sigma * _sigma), 
+            sigma_12(_sigma * _sigma * _sigma * _sigma * _sigma * _sigma * 
+                _sigma * _sigma * _sigma * _sigma * _sigma * _sigma) {
                 if (pos_x * pos_y * pos_z <= 0) {
                     throw runtime_error("Error: negative initial position");
                 }
@@ -135,8 +137,8 @@ protected:
     double kinetic_value;
 
     double sigma_6;
-    double distance_value_6;
     double sigma_12;
+    double distance_value_6;
     double distance_value_12;
 
     double mass;
