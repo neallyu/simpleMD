@@ -31,7 +31,7 @@ public:
             }
 
     Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
-        mass(other.mass), epsilon(other.epsilon), sigma(other.sigma), time_interval(other.time_interval) { }
+        mass(other.mass), epsilon(other.epsilon), sigma(other.sigma), time_interval(other.time_interval), sigma_6(other.sigma_6), sigma_12(other.sigma_12) { }
 
     // execute movement
     void movement() {
