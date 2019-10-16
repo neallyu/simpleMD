@@ -16,7 +16,7 @@ public:
 
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 5, 5, 1e-8));
+            ensemble.push_back(Particle((i + 1) * 0.001, (i + 1) * 0.001, (i + 1) * 0.001, i + 1, i + 1, i + 1, 5, 5, 2, 1e-5));
         }
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
@@ -79,11 +79,12 @@ public:
         while (i <= time) {
             ensemble_kinetic = 0;
             ensemble_potential = 0;
-            ensemble[index].output(particle_out);
+
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
                 this->iteration(*particle_ptr);
                 particle_ptr->rebounce(box);
             }
+            ensemble[index].output(particle_out);
             output(ensemble_out);
             ++i;
         }

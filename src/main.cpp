@@ -8,7 +8,7 @@ using namespace std;
 
 int main() {
     //box size: x=30, y=30, z=30
-    Box box1(30, 30, 30);
+    Box box1(5, 5, 5);
 
     // ensemble with x particles;
     Ensemble ensemble1(2);
