@@ -16,7 +16,7 @@ public:
 
     Ensemble(const unsigned _particle_number): particle_number(_particle_number) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle((i + 1) * 1e-2, (i + 1) * 1e-2, (i + 1) * 1e-2, i + 1, i + 1, i + 1, 5, 5, 5, 1e-4));
+            ensemble.push_back(Particle((i + 1) * 1e-3, (i + 1) * 1e-3, (i + 1) * 1e-3, i + 1, i + 1, i + 1, 15, 5e-5, 2, 1e-3));
         }
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {

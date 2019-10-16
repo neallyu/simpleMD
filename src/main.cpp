@@ -8,7 +8,7 @@ using namespace std;
 
 int main() {
     //box size: x=30, y=30, z=30
-    Box box1(5, 5, 5);
+    Box box1(3, 3, 3);
 
     // ensemble with x particles;
     Ensemble ensemble1(2);
@@ -18,7 +18,7 @@ int main() {
     ofstream ensemble_out("ensemble1.log");
 
     // define time, which particle to show, box and output file names
-    ensemble1.execute(5e5, 1, box1, particle_out, ensemble_out);
+    ensemble1.execute(10e6, 1, box1, particle_out, ensemble_out);
 
     particle_out << flush;
     ensemble_out << flush;
