@@ -51,12 +51,12 @@ public:
     // to save the resource, the potential of current partcile is calculated at the same time
     void acceleration(const Particle& other) {
         calculate_distance_value(other);
-        a_x += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (pos_x - other.pos_x) / mass;
-        a_y += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (pos_y - other.pos_y) / mass;
-        a_z += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
-            6 * pow(sigma / distance_value, 6) / distance_value) * (pos_z - other.pos_z) / mass;
+        a_x += 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+            (other.pos_x - pos_x) / (distance_value * distance_value) / mass;
+        a_y += 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+            (other.pos_y - pos_y) / (distance_value * distance_value) / mass;
+        a_z += 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+            (other.pos_z - pos_z) / (distance_value * distance_value) / mass;
 
         potential_value += 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
     }
