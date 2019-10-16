@@ -40,14 +40,17 @@ public:
     }
 
     // calculate acceleration of the particle from interaction (particle version)
+    // to save the resource, the potential of current partcile is calculated at the same time
     void interact(const Particle& other) {
         calculate_distance_value(other);
-        a_x += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_x += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_x - pos_x) / mass;
-        a_y += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_y += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_y - pos_y) / mass;
-        a_z += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_z += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_z - pos_z) / mass;
+
+        potential_value += 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
     }
 
     // output to file
