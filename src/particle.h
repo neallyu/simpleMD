@@ -39,18 +39,32 @@ public:
         );
     }
 
+    // execute movement
+    void movement() {
+        // uniformly accelerated motion
+        pos_x += v_x * time_interval + 0.5 * a_x * time_interval * time_interval;
+        pos_y += v_y * time_interval + 0.5 * a_y * time_interval * time_interval;
+        pos_z += v_z * time_interval + 0.5 * a_z * time_interval * time_interval;
+    }
+
     // calculate acceleration of the particle from interaction (particle version)
     // to save the resource, the potential of current partcile is calculated at the same time
-    void interact(const Particle& other) {
+    void acceleration(const Particle& other) {
         calculate_distance_value(other);
-        a_x += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_x += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_x - pos_x) / mass;
-        a_y += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_y += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_y - pos_y) / mass;
-        a_z += 4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
+        a_z += -4 * epsilon * (12 * pow(sigma / distance_value, 12) / distance_value - 
             6 * pow(sigma / distance_value, 6) / distance_value) * (other.pos_z - pos_z) / mass;
 
         potential_value += 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
+    }
+
+    void velocity() {                
+        v_x += (a_x + former_a_x) * 0.5 * time_interval;
+        v_y += (a_y + former_a_y) * 0.5 * time_interval;
+        v_z += (a_z + former_a_z) * 0.5 * time_interval;
     }
 
     // output to file
@@ -64,17 +78,6 @@ public:
         cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x << "\tposition_y: " << pos_y 
             << "\tv_y: " << v_y << "\ta_y: " << a_y << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z 
             << "\tpotential_value: " << potential_value << "\tkinetic value: " << kinetic_value << "\ttotal energy: " << total_energy() << endl;
-    }
-
-    // execute movement
-    void movement() {
-        // uniformly accelerated motion
-        pos_x += v_x * time_interval + 0.5 * a_x * time_interval * time_interval;
-        pos_y += v_y * time_interval + 0.5 * a_y * time_interval * time_interval;
-        pos_z += v_z * time_interval + 0.5 * a_z * time_interval * time_interval;
-        v_x += (a_x + former_a_x) * 0.5 * time_interval;
-        v_y += (a_y + former_a_y) * 0.5 * time_interval;
-        v_z += (a_z + former_a_z) * 0.5 * time_interval;
     }
 
     // rebounce if particle hits the wall of box (particle version)

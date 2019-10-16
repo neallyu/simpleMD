@@ -27,7 +27,7 @@ public:
                 // exclude the current particle
                 if (&(*particle_ptr) != &(*particle)) {
                     particle->calculate_distance_value(*particle_ptr);
-                    particle->interact(*particle_ptr);
+                    particle->acceleration(*particle_ptr);
                 }
             }
             particle->former_a_x = particle->a_x;
@@ -43,7 +43,8 @@ public:
 
     // calculate the total acceleration from other particles (ensemble version)
 
-    void interact(Particle& particle) {
+    void iteration(Particle& particle) {
+        particle.movement();
         particle.a_x = 0;
         particle.a_y = 0;
         particle.a_z = 0;
@@ -53,14 +54,14 @@ public:
             // exclude the current particle
             if (&(*particle_ptr) != &particle) {
                 particle.calculate_distance_value(*particle_ptr);
-                particle.interact(*particle_ptr);
+                particle.acceleration(*particle_ptr);
             }
         }
-        particle.kinetic();
-        particle.movement();
         particle.former_a_x = particle.a_x;
         particle.former_a_y = particle.a_y;
         particle.former_a_z = particle.a_z;
+        particle.velocity();
+        particle.kinetic();
     }
 
 
@@ -76,7 +77,7 @@ public:
             ensemble_potential = 0;
             ensemble[index].output(particle_out);
             for (auto particle_ptr = ensemble.begin(); particle_ptr != ensemble.end(); ++particle_ptr) {
-                interact(*particle_ptr);
+                this->iteration(*particle_ptr);
                 ensemble_potential += particle_ptr->potential_value;
                 ensemble_kinetic += particle_ptr->kinetic_value;
                 particle_ptr->rebounce(box);
