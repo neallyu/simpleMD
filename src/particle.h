@@ -25,6 +25,8 @@ public:
                 if (mass <= 0) {
                     throw runtime_error("Error: invalid mass");
                 }
+                sigma_6 = sigma * sigma * sigma * sigma * sigma * sigma;
+                sigma_12 = sigma_6 * sigma_6;
             }
 
     Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
@@ -37,6 +39,8 @@ public:
             (other.pos_y - pos_y) * (other.pos_y - pos_y) +
             (other.pos_z - pos_z) * (other.pos_z - pos_z)
         );
+        distance_value_6 = distance_value * distance_value * distance_value * distance_value * distance_value * distance_value;
+        distance_value_12 = distance_value_6 * distance_value_6;
     }
 
     // execute movement
@@ -51,14 +55,13 @@ public:
     // to save the resource, the potential of current partcile is calculated at the same time
     void acceleration(const Particle& other) {
         calculate_distance_value(other);
-        a_x -= 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+        a_x -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
             (other.pos_x - pos_x) / (distance_value * distance_value) / mass;
-        a_y -= 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+        a_y -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
             (other.pos_y - pos_y) / (distance_value * distance_value) / mass;
-        a_z -= 24 * epsilon * (2 * pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6)) * 
+        a_z -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
             (other.pos_z - pos_z) / (distance_value * distance_value) / mass;
-
-        potential_value += 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
+        potential_value += 4 * epsilon * ( sigma_12 / distance_value_12 - sigma_6 / distance_value_6 );
     }
 
     void velocity() {                
@@ -104,7 +107,7 @@ public:
     // calculate potential between two particles (particle version)
     // note: must call "interact" before calculate the potential
     void potential(const Particle& other) {
-        potential_value = 4 * epsilon * ( pow(sigma / distance_value, 12) - pow(sigma / distance_value, 6) );
+        potential_value = 4 * epsilon * ( sigma_12 / distance_value_12 - sigma_6 / distance_value_6 );
     }
 
     // calculate total energy (particle version)
@@ -136,6 +139,11 @@ protected:
     double distance_value;
     double potential_value;
     double kinetic_value;
+
+    double sigma_6;
+    double distance_value_6;
+    double sigma_12;
+    double distance_value_12;
 
     double mass;
     double epsilon;

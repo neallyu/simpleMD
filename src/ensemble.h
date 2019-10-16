@@ -57,11 +57,13 @@ public:
                 particle.acceleration(*particle_ptr);
             }
         }
+        particle.velocity();
+        particle.kinetic();
+
         particle.former_a_x = particle.a_x;
         particle.former_a_y = particle.a_y;
         particle.former_a_z = particle.a_z;
-        particle.velocity();
-        particle.kinetic();
+
         ensemble_potential += particle.potential_value;
         ensemble_kinetic += particle.kinetic_value;
     }
