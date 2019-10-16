@@ -18,15 +18,16 @@ public:
     Particle(double _v_x, double _v_y, double _v_z, double _pos_x, double _pos_y, double _pos_z,
         double _mass, double _epsilon, double _sigma, double _time_interval): 
             v_x(_v_x), v_y(_v_y), v_z(_v_z), pos_x(_pos_x), pos_y(_pos_y), pos_z(_pos_z),
-            mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval) {
+            mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval),
+            sigma_6(_sigma * _sigma * _sigma * _sigma * _sigma * _sigma), 
+            sigma_12(_sigma * _sigma * _sigma * _sigma * _sigma * _sigma * 
+                _sigma * _sigma * _sigma * _sigma * _sigma * _sigma) {
                 if (pos_x * pos_y * pos_z <= 0) {
                     throw runtime_error("Error: negative initial position");
                 }
                 if (mass <= 0) {
                     throw runtime_error("Error: invalid mass");
                 }
-                sigma_6 = _sigma * _sigma * _sigma * _sigma * _sigma * _sigma;
-                sigma_12 = _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma * _sigma;
             }
 
     Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y), pos_z(other.pos_z),
@@ -135,8 +136,8 @@ protected:
     double potential_value;
     double kinetic_value;
 
-    double sigma_6;
-    double sigma_12;
+    const double sigma_6;
+    const double sigma_12;
     double distance_value_6;
     double distance_value_12;
 
