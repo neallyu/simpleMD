@@ -35,48 +35,26 @@ public:
 
     // execute movement
     void movement() {
-        // uniformly accelerated motion
-        pos_x += v_x * time_interval + 0.5 * a_x * time_interval * time_interval;
-        pos_y += v_y * time_interval + 0.5 * a_y * time_interval * time_interval;
-        pos_z += v_z * time_interval + 0.5 * a_z * time_interval * time_interval;
-    }
-
-    // calculate acceleration of the particle from interaction (particle version)
-    // to save the resource, the potential of current partcile is calculated at the same time
-    void acceleration(const Particle& other) {
-        distance_value = sqrt(
-            (other.pos_x - pos_x) * (other.pos_x - pos_x) + 
-            (other.pos_y - pos_y) * (other.pos_y - pos_y) +
-            (other.pos_z - pos_z) * (other.pos_z - pos_z)
-        );
-        distance_value_6 = distance_value * distance_value * distance_value * distance_value * distance_value * distance_value;
-        distance_value_12 = distance_value_6 * distance_value_6;
-        a_x -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
-            (other.pos_x - pos_x) / (distance_value * distance_value) / mass;
-        a_y -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
-            (other.pos_y - pos_y) / (distance_value * distance_value) / mass;
-        a_z -= 24 * epsilon * (2 * sigma_12 / distance_value_12 - sigma_6 / distance_value_6) * 
-            (other.pos_z - pos_z) / (distance_value * distance_value) / mass;
-        potential_value += 4 * epsilon * ( sigma_12 / distance_value_12 - sigma_6 / distance_value_6 );
+        // Euler algorithm
+        pos_x = pos_x + v_x * time_interval + 0.5 * a_x_A * time_interval * time_interval;
+        pos_y = pos_y + v_y * time_interval + 0.5 * a_y_A * time_interval * time_interval;
+        pos_z = pos_z + v_z * time_interval + 0.5 * a_z_A * time_interval * time_interval;
     }
 
     void velocity() {                
-        v_x += (a_x + former_a_x) * 0.5 * time_interval;
-        v_y += (a_y + former_a_y) * 0.5 * time_interval;
-        v_z += (a_z + former_a_z) * 0.5 * time_interval;
+        v_x = v_x + (a_x_A + a_x_B) * 0.5 * time_interval;
+        v_y = v_y + (a_y_A + a_y_B) * 0.5 * time_interval;
+        v_z = v_z + (a_z_A + a_z_B) * 0.5 * time_interval;
     }
 
-    // output to file
-    void output(ofstream& fout) {
-        fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y  << "\t" << v_z << "\t" 
-            << a_x << "\t" << a_y << "\t" << a_z << "\t" << potential_value << "\t" << kinetic_value << "\t" << total_energy() << "\n";
+        // calculate the current kinetic energy of the particle
+    void kinetic() {
+        kinetic_value = 0.5 * mass * (v_x * v_x + v_y * v_y + v_z * v_z);
     }
 
-    // print on terminal
-    void print() {
-        cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x << "\tposition_y: " << pos_y 
-            << "\tv_y: " << v_y << "\ta_y: " << a_y << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z 
-            << "\tpotential_value: " << potential_value << "\tkinetic value: " << kinetic_value << "\ttotal energy: " << total_energy() << endl;
+    // calculate total energy (particle version)
+    double total_energy() {
+        return kinetic_value + potential_value;
     }
 
     // rebounce if particle hits the wall of box (particle version)
@@ -95,20 +73,17 @@ public:
         }
     }
 
-    // calculate the current kinetic energy of the particle
-    void kinetic() {
-        kinetic_value = 0.5 * mass * (v_x * v_x + v_y * v_y + v_z * v_z);
+    // output to file
+    void output(ofstream& fout) {
+        fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y << "\t" << v_z << "\t" 
+            << a_x_B << "\t" << a_y_B << "\t" << a_z_B << "\t" << potential_value << "\t" << kinetic_value << "\t" << total_energy() << "\n";
     }
 
-    // calculate potential between two particles (particle version)
-    // note: must call "interact" before calculate the potential
-    void potential(const Particle& other) {
-        potential_value = 4 * epsilon * ( sigma_12 / distance_value_12 - sigma_6 / distance_value_6 );
-    }
-
-    // calculate total energy (particle version)
-    double total_energy() {
-        return kinetic_value + potential_value;
+    // print on terminal
+    void print() {
+        cout << "position_x: " << pos_x << "\tv_x: " << v_x << "\ta_x: " << a_x_B << "\tposition_y: " << pos_y 
+            << "\tv_y: " << v_y << "\ta_y: " << a_y_B << "\tposition_x: " << pos_z << "\tv_z: " << v_z << "\ta_z: " << a_z_B 
+            << "\tpotential_value: " << potential_value << "\tkinetic value: " << kinetic_value << "\ttotal energy: " << total_energy() << endl;
     }
 
 protected:
@@ -122,15 +97,15 @@ protected:
     double v_y;
     double v_z;
 
-    // acceleration
-    double a_x;
-    double a_y;
-    double a_z;
+    // acceleration of step A
+    double a_x_A;
+    double a_y_A;
+    double a_z_A;
 
-    // former accerleration for velocity verlet
-    double former_a_x;
-    double former_a_y;
-    double former_a_z;
+    // acceleration of step B 
+    double a_x_B;
+    double a_y_B;
+    double a_z_B;
 
     double distance_value;
     double potential_value;
@@ -138,8 +113,6 @@ protected:
 
     const double sigma_6;
     const double sigma_12;
-    double distance_value_6;
-    double distance_value_12;
 
     double mass;
     double epsilon;
