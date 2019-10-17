@@ -18,8 +18,8 @@ public:
         // for (unsigned i = 0; i < particle_number; ++i) {
         //     ensemble.push_back(Particle((i + 1) * 1e-2, (i + 1) * 1e-2, (i + 1) * 1e-2, i + 1, i + 1, i + 1, 1, 1e-1, 1, 2e-6));
         // }
-        ensemble.push_back(Particle(1e-2, 1e-2, 1e-2, 1, 1, 1, 1, 1e-3, 1, 1e-4));
-        ensemble.push_back(Particle(-1e-2, -1e-2, -1e-2, 2, 2, 2, 1, 1e-3, 1, 1e-4));
+        ensemble.push_back(Particle(1e-2, 1e-2, 1e-2, 1, 1, 1, 1, 1e-3, 1, 1e-3));
+        ensemble.push_back(Particle(-1e-2, -1e-2, -1e-2, 2, 2, 2, 1, 1e-3, 1, 1e-3));
 
         // Initialize acceleartion in step A
         for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
@@ -48,11 +48,11 @@ public:
         );
         double distance_value_6 = distance_value * distance_value * distance_value * distance_value * distance_value * distance_value;
         double distance_value_12 = distance_value_6 * distance_value_6;
-        double force_x = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - particle1.sigma_6 / 0.5 * distance_value_6) * 
+        double force_x = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - 0.5 * particle1.sigma_6 / distance_value_6) * 
             (particle1.pos_x - particle2.pos_x) / (distance_value * distance_value);
-        double force_y = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - particle1.sigma_6 / 0.5 * distance_value_6) * 
+        double force_y = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - 0.5 * particle1.sigma_6 / distance_value_6) * 
             (particle1.pos_y - particle2.pos_y) / (distance_value * distance_value);
-        double force_z = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - particle1.sigma_6 / 0.5 * distance_value_6) * 
+        double force_z = 48 * particle1.epsilon * (particle1.sigma_12 / distance_value_12 - 0.5 * particle1.sigma_6 / distance_value_6) * 
             (particle1.pos_z - particle2.pos_z) / (distance_value * distance_value);
 
         particle1.a_x_B += force_x / particle1.mass;

@@ -18,7 +18,7 @@ int main() {
     ofstream ensemble_out("ensemble1.log");
 
     // define time, which particle to show, box and output file names
-    ensemble1.iteration(5e4, 1, box1, particle_out, ensemble_out);
+    ensemble1.iteration(5e5, 1, box1, particle_out, ensemble_out);
 
     particle_out << flush;
     ensemble_out << flush;
