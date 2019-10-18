@@ -89,9 +89,9 @@ public:
 
         double r6i = pow(r2i, 3);
 
-        double force_x = 48.0 * particle1.epsilon * r2i * r6i * (r6i - 0.5) * dx;
-        double force_y = 48.0 * particle1.epsilon * r2i * r6i * (r6i - 0.5) * dy;
-        double force_z = 48.0 * particle1.epsilon * r2i * r6i * (r6i - 0.5) * dz;
+        double force_x = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dx / r2;
+        double force_y = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dy / r2;
+        double force_z = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dz / r2;
 
 
         particle1.a_x += force_x / particle1.mass;
@@ -139,11 +139,15 @@ public:
             for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
                 // particle->velocity();
                 // particle->kinetic();
+                // if (i % 1000 == 0) {
                 ensemble[index].output(particle_out);
+                // }
                 ensemble_potential += particle->potential_value;
                 ensemble_kinetic += particle->kinetic_value;
             }
+            // if (i % 1000 == 0) {
             output(ensemble_out);
+            // }
             ++i;
         }
     }
