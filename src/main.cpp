@@ -8,10 +8,10 @@ using namespace std;
 
 int main() {
     //box size: x=30, y=30, z=30
-    Box box1(3, 3, 3);
+    Box box1(nm(2), nm(2), nm(2));
 
     // ensemble with x particles;
-    Ensemble ensemble1(2);
+    Ensemble ensemble1(5, 1e-9, 1e-3, box1);
 
     // define output file name
     ofstream particle_out("particle1.log");
