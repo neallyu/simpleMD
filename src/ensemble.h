@@ -17,10 +17,10 @@ public:
 
     Ensemble(const unsigned _particle_number, double temp, double time_interval, Box& box): particle_number(_particle_number), TEMP(temp) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle(0, 0, 0, 0, 0, 0, amu(32), 407.6, nm(0.302), time_interval));
+            ensemble.push_back(Particle(0, 0, 0, 0, 0, 0, 32, 3, 5, time_interval));
         }
 
-        init_particle(box);
+        init_particle(box); 
 
         // Initialize acceleartion in step A
         for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
@@ -52,9 +52,9 @@ public:
         double dy = particle1.pos_y - particle2.pos_y;
         double dz = particle1.pos_z - particle2.pos_z;
 
-        dx -= 10 * round(dx / 10);
-        dy -= 10 * round(dy / 10);
-        dz -= 10 * round(dz / 10);
+        // dx -= 10 * round(dx / 10);
+        // dy -= 10 * round(dy / 10);
+        // dz -= 10 * round(dz / 10);
 
         double r2 = dx * dx + dy * dy + dz * dz;
 
@@ -69,16 +69,16 @@ public:
             double force_z = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dz / r2;
 
 
-            particle1.a_x_B += force_x / particle1.mass;
-            particle1.a_y_B += force_y / particle1.mass;
-            particle1.a_z_B += force_z / particle1.mass;
+            particle1.a_x_B += (force_x / particle1.mass);
+            particle1.a_y_B += (force_y / particle1.mass);
+            particle1.a_z_B += (force_z / particle1.mass);
 
-            particle2.a_x_B -= force_x / particle2.mass;
-            particle2.a_y_B -= force_y / particle2.mass;
-            particle2.a_z_B -= force_z / particle2.mass;
+            particle2.a_x_B -= (force_x / particle2.mass);
+            particle2.a_y_B -= (force_y / particle2.mass);
+            particle2.a_z_B -= (force_z / particle2.mass);
 
-            particle1.potential_value += 4.0 * particle1.epsilon * r6i * ( r6i - 1 ) - particle1.ecut;
-            particle2.potential_value += 4.0 * particle2.epsilon * r6i * ( r6i - 1 ) - particle2.ecut;
+            particle1.potential_value += (4.0 * particle1.epsilon * r6i * ( r6i - 1 ) - particle1.ecut);
+            particle2.potential_value += (4.0 * particle2.epsilon * r6i * ( r6i - 1 ) - particle2.ecut);
         }
 
     }
@@ -98,9 +98,13 @@ public:
             particle->pos_z = displacement(random_generator) * box.dim3;
             cout << particle->pos_z << endl;
 
-            particle->v_x = nm(displacement(random_generator) - 0.5);
-            particle->v_y = nm(displacement(random_generator) - 0.5);
-            particle->v_z = nm(displacement(random_generator) - 0.5);
+            // particle->v_x = nm(displacement(random_generator) - 0.5);
+            // particle->v_y = nm(displacement(random_generator) - 0.5);
+            // particle->v_z = nm(displacement(random_generator) - 0.5);
+
+            particle->v_x = displacement(random_generator) - 0.5;
+            particle->v_y = displacement(random_generator) - 0.5;
+            particle->v_z = displacement(random_generator) - 0.5;
 
             sumv_x += particle->v_x;
             sumv_y += particle->v_y;
@@ -115,7 +119,9 @@ public:
 
         sumv2 /= particle_number;
         
-        double fs = sqrt(3 * kb * TEMP / (sumv2 * ensemble[0].mass));
+        // double fs = sqrt(3 * kb * TEMP / (sumv2 * ensemble[0].mass));
+
+        double fs = sqrt(3 * TEMP / (sumv2 * ensemble[0].mass));
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             particle->v_x = (particle->v_x - sumv_x) * fs;
@@ -171,6 +177,7 @@ public:
             ensemble_potential = 0;
 
             // Execute movement of step A & Initialize acceleration of step B
+            #pragma omp parallel
             for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
                 // step A
                 particle->movement();
@@ -182,6 +189,7 @@ public:
                 particle->potential_value = 0;
             }
 
+            #pragma omp parallel
             // calculate acceleration of step B
             for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
                 for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
@@ -189,10 +197,15 @@ public:
                 }
             }
 
+            #pragma omp parallel
             // calculate velocity of step B
             for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
                 particle->velocity();
                 particle->kinetic();
+
+                particle->a_x_A = particle->a_x_B;
+                particle->a_y_A = particle->a_y_B;
+                particle->a_z_A = particle->a_z_B;
                 // if (i % 1000 == 0) {
                 ensemble[index].output(particle_out);
                 // }
