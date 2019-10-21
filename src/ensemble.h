@@ -17,7 +17,7 @@ public:
 
     Ensemble(const unsigned _particle_number, double temp, double time_interval, Box& box): particle_number(_particle_number), TEMP(temp) {
         for (unsigned i = 0; i < particle_number; ++i) {
-            ensemble.push_back(Particle(0, 0, 0, 0, 0, 0, 32, 3, 5, time_interval));
+            ensemble.push_back(Particle(0, 0, 0, 0, 0, 0, 32, 10, 3, time_interval));
         }
 
         init_particle(box); 
@@ -206,16 +206,18 @@ public:
                 particle->a_x_A = particle->a_x_B;
                 particle->a_y_A = particle->a_y_B;
                 particle->a_z_A = particle->a_z_B;
-                // if (i % 1000 == 0) {
-                ensemble[index].output(particle_out);
-                // }
                 ensemble_potential += particle->potential_value;
                 ensemble_kinetic += particle->kinetic_value;
                 particle->rebounce(box);
             }
-            // if (i % 1000 == 0) {
-            output(ensemble_out);
-            // }
+
+            ensemble_potential /= 2;
+
+            // output
+            if (i % 10000 == 0) {
+                ensemble[index].output(particle_out);
+                output(ensemble_out);
+            }
             ++i;
         }
     }
