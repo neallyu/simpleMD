@@ -1,7 +1,6 @@
 #include <fstream>
-#include "ensemble.cpp"
-#include "particle.cpp"
-#include "neighborlist.cpp"
+#include "ensemble.hpp"
+#include "particle.hpp"
 
 using namespace std;
 
