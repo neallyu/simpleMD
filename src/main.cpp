@@ -1,12 +1,13 @@
 #include <fstream>
 #include "ensemble.cpp"
 #include "particle.cpp"
+#include "neighborlist.cpp"
 
 using namespace std;
 
 int main() {
     // ensemble with x particles;
-    Ensemble ensemble1(30, 2, 1e-3, 20);
+    Ensemble ensemble1(30, 2, 1e-5, 20);
 
     // define output file name
     ofstream particle_out("particle1.log");

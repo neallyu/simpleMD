@@ -1,13 +1,13 @@
 #include "ensemble.h"
 
 Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, double box): 
-    particle_number(_particle_number), TEMP(temp), BOX(box) {
-    for (unsigned i = 0; i < particle_number; ++i) {
-        ensemble.push_back(Particle(32, 1, 1, time_interval));
-    }
-    init_particle(); 
+    particle_number(_particle_number), TEMP(temp), BOX(box), 
+    ensemble(_particle_number, Particle(32, 1, 3, time_interval)), 
+    nlist(ensemble, BOX, ensemble[0].rlist2) {
+        init_particle();
+        nlist.update_neighbor_list(ensemble);
+        need_update_nlist = false;
 }
- 
 
 // use ensemble[index] to call particle's method
 Particle& Ensemble::operator[] (const int index) {
@@ -64,8 +64,8 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
         particle2.potential_value += (4.0 * particle2.epsilon * r6i * ( r6i - 1 ) - particle2.ecut);
     }
 
-    if (r2 > particle1.rlist2) {
-
+    if (r2 > nlist.rlist2) {
+        need_update_nlist = true;
     }
 }
 
@@ -77,11 +77,23 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
         ensemble_kinetic = 0;
         ensemble_potential = 0;
 
-        // calculate acceleration of step B
-        for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
-            for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
-                calc_acceleration(*particle1, *particle2);
+        // // calculate acceleration of step B
+        // for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
+        //     for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
+        //         calc_acceleration(*particle1, *particle2);
+        //     }
+        // }
+
+        // calculate acceleration of step B in neighbor list
+        for (int i = 0; i < nlist.nlist.size(); ++i) {
+            for (int j = 0; j < nlist.nlist[i].size(); ++j) {
+                calc_acceleration(ensemble[i], ensemble[j]);
             }
+        }
+
+        if (need_update_nlist == true) {
+            nlist.update_neighbor_list(ensemble);
+            need_update_nlist = false;
         }
 
         #pragma omp parallel
@@ -186,5 +198,20 @@ void Ensemble::init_particle() {
             particle2->a_y_A = particle2->a_y_B;
             particle2->a_z_A = particle2->a_z_B;
         }
+    }
+
+    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+        // execute x and v propagation
+        particle->movement();
+        particle->velocity();
+
+        // record a_A and initialize a_B
+        particle->a_x_A = particle->a_x_B;
+        particle->a_y_A = particle->a_y_B;
+        particle->a_z_A = particle->a_z_B;
+        particle->a_x_B = 0;
+        particle->a_y_B = 0;
+        particle->a_z_B = 0;
+        particle->potential_value = 0;
     }
 }
