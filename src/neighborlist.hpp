@@ -20,8 +20,8 @@ private:
     double calc_distance2(Particle& particle1, Particle& particle2);
 
     vector<vector <int> > nlist;
-    double BOX;
-    double rlist2;
+    const double BOX;
+    const double rlist2;
 };
 
 
@@ -39,17 +39,13 @@ void Neighborlist::update_neighbor_list(vector<Particle> &ensemble) {
 
 // Atoms are not double counted in the neighbor list. That is, when atom j
 // is on atom i's list, the opposite is not true.
-    cout << "Updating neighborlist..." << endl;
     #pragma omp parallel
     for (int i = 0; i < nlist.size() - 1; ++i) {
-        cout << "Particle(" << i << "):\t";
         for (int j = i + 1; j < nlist.size(); ++j) {
             if (calc_distance2(ensemble[i], ensemble[j]) < rlist2) {
                 nlist[i].push_back(j);
-                cout << j << ", ";
             }
         }
-        cout << endl;
     }
 }
 

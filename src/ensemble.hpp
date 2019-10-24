@@ -21,7 +21,6 @@ public:
 
     // return particle of that index
     inline Particle& operator[] (const int);
-    inline void init_particle();
 
     // return distance^2 between two particles
     inline double calc_distance2(Particle&, Particle&);
@@ -48,11 +47,88 @@ private:
 
 Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, double box): 
     particle_number(_particle_number), TEMP(temp), BOX(box), 
-    ensemble(_particle_number, Particle(32, 1, 3, time_interval)), 
-    nlist(ensemble, BOX, ensemble[0].rlist2) {
-        init_particle();
+    ensemble(_particle_number, Particle(32, 1, 1, time_interval)), 
+    nlist(ensemble, box, ensemble[0].rlist2) {
+
+        default_random_engine random_generator;
+        uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
+
+        double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
+        double sumv2(0.0);
+
+        int i = 0; // for lattice pos
+
+        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+
+            particle->lattice_pos(i + 1);
+            ++i;
+
+            particle->pos_x += 0.01 * (displacement(random_generator) - 0.5);
+            // cout << "Initial position: " << particle->pos_x << "\t";
+            particle->pos_y += 0.01 * (displacement(random_generator) - 0.5);
+            // cout << particle->pos_y << "\t";
+            particle->pos_z += 0.01 * (displacement(random_generator) - 0.5);
+            // cout << particle->pos_z << endl;
+
+            particle->v_x = displacement(random_generator) - 0.5;
+            particle->v_y = displacement(random_generator) - 0.5;
+            particle->v_z = displacement(random_generator) - 0.5;
+
+            sumv_x += particle->v_x;
+            sumv_y += particle->v_y;
+            sumv_z += particle->v_z;
+
+            sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
+        }
+
+        sumv_x /= particle_number;
+        sumv_y /= particle_number;
+        sumv_z /= particle_number;
+
+        sumv2 /= particle_number;
+
+        double fs = sqrt(3 * TEMP / (sumv2 * ensemble[0].mass));
+
+        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+            particle->v_x = (particle->v_x - sumv_x) * fs;
+            // cout << "Initial velocity: " << particle->v_x << "\t";
+            particle->v_y = (particle->v_y - sumv_y) * fs;
+            // cout << particle->v_y << "\t";
+            particle->v_z = (particle->v_z - sumv_z) * fs;
+            // cout << particle->v_z << endl;
+        }
+
+        // Initialize neighborlist
         nlist.update_neighbor_list(ensemble);
         need_update_nlist = false;
+
+        // Initialize acceleartion in step A
+        for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
+            for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
+                calc_acceleration(*particle1, *particle2);
+                particle1->a_x_A = particle1->a_x_B;
+                particle1->a_y_A = particle1->a_y_B;
+                particle1->a_z_A = particle1->a_z_B;
+                particle2->a_x_A = particle2->a_x_B;
+                particle2->a_y_A = particle2->a_y_B;
+                particle2->a_z_A = particle2->a_z_B;
+            }
+        }
+
+        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+            // execute x and v propagation
+            particle->movement();
+            particle->velocity();
+
+            // record a_A and initialize a_B
+            particle->a_x_A = particle->a_x_B;
+            particle->a_y_A = particle->a_y_B;
+            particle->a_z_A = particle->a_z_B;
+            particle->a_x_B = 0;
+            particle->a_y_B = 0;
+            particle->a_z_B = 0;
+            particle->potential_value = 0;
+        }
 }
 
 // use ensemble[index] to call particle's method
@@ -123,17 +199,11 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
         ensemble_kinetic = 0;
         ensemble_potential = 0;
 
-        // // calculate acceleration of step B
-        // for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
-        //     for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
-        //         calc_acceleration(*particle1, *particle2);
-        //     }
-        // }
-
         // calculate acceleration of step B in neighbor list
+        // #pragma omp parallel
         for (int i = 0; i < nlist.nlist.size(); ++i) {
-            for (int j = 0; j < nlist.nlist[i].size(); ++j) {
-                calc_acceleration(ensemble[i], ensemble[j]);
+            for (auto j = nlist.nlist[i].begin(); j != nlist.nlist[i].end(); ++j) {
+                calc_acceleration(ensemble[i], ensemble[*j]);
             }
         }
 
@@ -142,7 +212,7 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
             need_update_nlist = false;
         }
 
-        #pragma omp parallel
+        // #pragma omp parallel
         // calculate velocity of step B
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             // record energy
@@ -168,10 +238,10 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
         ensemble_potential /= 2;
 
         // output
-        // if (i % 100 == 0) {
+        if (i % 100 == 0) {
             ensemble[index].output(particle_out);
             output(ensemble_out);
-        // }
+        }
         ++i;
     }
 }
@@ -179,87 +249,6 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
 
 void Ensemble::output(ofstream& fout) {
     fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
-}
-
-
-void Ensemble::init_particle() {
-
-    default_random_engine random_generator;
-    uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
-
-    double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
-    double sumv2(0.0);
-
-    int i = 0; // for lattice pos
-
-    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-
-        particle->lattice_pos(i + 1);
-        ++i;
-
-        particle->pos_x += 0.01 * (displacement(random_generator) - 0.5);
-        cout << "Initial position: " << particle->pos_x << "\t";
-        particle->pos_y += 0.01 * (displacement(random_generator) - 0.5);
-        cout << particle->pos_y << "\t";
-        particle->pos_z += 0.01 * (displacement(random_generator) - 0.5);
-        cout << particle->pos_z << endl;
-
-        particle->v_x = displacement(random_generator) - 0.5;
-        particle->v_y = displacement(random_generator) - 0.5;
-        particle->v_z = displacement(random_generator) - 0.5;
-
-        sumv_x += particle->v_x;
-        sumv_y += particle->v_y;
-        sumv_z += particle->v_z;
-
-        sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
-    }
-
-    sumv_x /= particle_number;
-    sumv_y /= particle_number;
-    sumv_z /= particle_number;
-
-    sumv2 /= particle_number;
-
-    double fs = sqrt(3 * TEMP / (sumv2 * ensemble[0].mass));
-
-    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-        particle->v_x = (particle->v_x - sumv_x) * fs;
-        cout << "Initial velocity: " << particle->v_x << "\t";
-        particle->v_y = (particle->v_y - sumv_y) * fs;
-        cout << particle->v_y << "\t";
-        particle->v_z = (particle->v_z - sumv_z) * fs;
-        cout << particle->v_z << endl;
-    }
-
-
-    // Initialize acceleartion in step A
-    for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
-        for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
-            calc_acceleration(*particle1, *particle2);
-            particle1->a_x_A = particle1->a_x_B;
-            particle1->a_y_A = particle1->a_y_B;
-            particle1->a_z_A = particle1->a_z_B;
-            particle2->a_x_A = particle2->a_x_B;
-            particle2->a_y_A = particle2->a_y_B;
-            particle2->a_z_A = particle2->a_z_B;
-        }
-    }
-
-    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-        // execute x and v propagation
-        particle->movement();
-        particle->velocity();
-
-        // record a_A and initialize a_B
-        particle->a_x_A = particle->a_x_B;
-        particle->a_y_A = particle->a_y_B;
-        particle->a_z_A = particle->a_z_B;
-        particle->a_x_B = 0;
-        particle->a_y_B = 0;
-        particle->a_z_B = 0;
-        particle->potential_value = 0;
-    }
 }
 
 #endif
