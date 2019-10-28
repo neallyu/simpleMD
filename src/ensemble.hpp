@@ -8,12 +8,14 @@
 #include <random>
 #include "particle.hpp"
 #include "neighborlist.hpp"
+#include "radial_distribution_function.hpp"
 
 using namespace std;
 
 class Ensemble {
 
 friend class Neighborlist;
+friend class Rdf;
 
 public:
     // Initializer
@@ -34,6 +36,7 @@ public:
 
 
 private:
+
     vector<Particle> ensemble;
     Neighborlist nlist;
     bool need_update_nlist;
@@ -42,13 +45,14 @@ private:
     double ensemble_kinetic;
     const double TEMP;
     const double BOX;
+    Rdf rdf;
 };
 
 
 Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, double box): 
     particle_number(_particle_number), TEMP(temp), BOX(box), 
     ensemble(_particle_number, Particle(32, 1, 1, time_interval)), 
-    nlist(ensemble, box, ensemble[0].rlist2) {
+    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box) {
 
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
@@ -191,6 +195,12 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
     }
 }
 
+
+void Ensemble::output(ofstream& fout) {
+    fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
+}
+
+
 // basic interation step of velocity verlet
 void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& particle_out, ofstream& ensemble_out) {
     int i = 0;
@@ -241,14 +251,15 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
         if (i % 100 == 0) {
             ensemble[index].output(particle_out);
             output(ensemble_out);
+
+            rdf.sample(ensemble);
         }
         ++i;
     }
+
+    rdf.normalize(particle_number);
+    rdf.output();
 }
 
-
-void Ensemble::output(ofstream& fout) {
-    fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
-}
 
 #endif

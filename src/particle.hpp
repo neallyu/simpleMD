@@ -11,6 +11,8 @@ class Particle {
 
 friend class Ensemble;
 friend class Neighborlist;
+friend double distance(Particle&, Particle&, double);
+friend double distance2(Particle&, Particle&, double);
 
 public:
     // Initializer, receive the initial status of the particle

@@ -16,7 +16,7 @@ int main() {
 
     cout << "[MD LOG]\tStarting main interation..." << endl;
     // define time, which particle to show, box and output file names
-    ensemble1.iteration(5e5, 1, particle_out, ensemble_out);
+    ensemble1.iteration(5e4, 1, particle_out, ensemble_out);
  
     cout << "[MD LOG]\tCalculation completed" << endl;
     particle_out << flush;

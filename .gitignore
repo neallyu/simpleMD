@@ -3,6 +3,7 @@
 *.png
 *.log
 *.json
+*.csv
 .vs/*
 main
 script/venv/*
