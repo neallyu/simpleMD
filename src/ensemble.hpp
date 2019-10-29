@@ -8,6 +8,7 @@
 #include <random>
 #include "particle.hpp"
 #include "neighborlist.hpp"
+#include "unit_conversion.hpp"
 #include "radial_distribution_function.hpp"
 #include "utils.hpp"
 
@@ -47,6 +48,7 @@ private:
     double ensemble_kinetic;
     ofstream ensemble_out;
     ofstream particle_out;
+    Unit_conversion unit;
 
     const unsigned long TIME;
     const unsigned long SAMPLE_RATE;
@@ -57,10 +59,10 @@ private:
 };
 
 
-Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, unsigned long _TIME, double box, 
-    char *ensemble_out_file, char *particle_out_file): 
-    particle_number(_particle_number), TEMP(temp), BOX(box), ensemble(_particle_number, Particle(32, 1, 1, time_interval)), 
-    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
+Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
+    unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file): 
+    particle_number(_particle_number), TEMP(temp), BOX(box), unit(sigma, epsilon, mass), 
+    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box), TIME(_TIME), SAMPLE_RATE(_TIME / 1000),
     ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
 
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
@@ -206,7 +208,6 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
         particle2.a_z_B -= (force_z / particle2.mass);
 
         particle1.potential_value += (4.0 * particle1.epsilon * r6i * ( r6i - 1 ) - particle1.ecut);
-        particle2.potential_value += (4.0 * particle2.epsilon * r6i * ( r6i - 1 ) - particle2.ecut);
     }
 
     if (r2 > nlist.rlist2) {
@@ -229,7 +230,6 @@ void Ensemble::iteration() {
         ensemble_potential = 0;
 
         // calculate acceleration of step B in neighbor list
-        // #pragma omp parallel
         for (int i = 0; i < nlist.nlist.size(); ++i) {
             for (auto j = nlist.nlist[i].begin(); j != nlist.nlist[i].end(); ++j) {
                 calc_acceleration(ensemble[i], ensemble[*j]);
@@ -241,7 +241,6 @@ void Ensemble::iteration() {
             need_update_nlist = false;
         }
 
-        // #pragma omp parallel
         // calculate velocity of step B
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             // record energy
@@ -262,20 +261,12 @@ void Ensemble::iteration() {
             particle->a_z_B = 0;
             particle->potential_value = 0;
         }
-
-        // This is necessary because the potential energy of individual particle is calculated twice
-        ensemble_potential /= 2;
-
         // output
         if (i % SAMPLE_RATE == 0) {
             // show the trajectory of one particle
             ensemble[1].output(particle_out);
-
             output(ensemble_out);
-
             rdf.sample(ensemble);
-
-            // cout << "[MD LOG]\tIteration " << i << " is sampled..." << endl;            
         }
         ++i;
     }
