@@ -135,9 +135,9 @@ void Particle::kinetic() {
 
 // output to file
 void Particle::output(ofstream& fout) {
-    fout << pos_x << "\t" << pos_y << "\t" << pos_z << "\t" << v_x << "\t" << v_y << "\t" << v_z << "\t" 
-        << a_x_B << "\t" << a_y_B << "\t" << a_z_B << "\t" << potential_value << "\t" << kinetic_value 
-        << "\t" << potential_value + kinetic_value << "\n";
+    fout << pos_x << "    " << pos_y << "    " << pos_z << "    " << v_x << "    " << v_y << "    " << v_z << "    " 
+        << a_x_B << "    " << a_y_B << "    " << a_z_B << "    " << potential_value << "    " << kinetic_value 
+        << "    " << potential_value + kinetic_value << endl;
 }
 
 #endif

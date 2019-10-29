@@ -19,7 +19,10 @@ friend class Rdf;
 
 public:
     // Initializer
-    Ensemble(const unsigned, double, double, double);
+    Ensemble(const unsigned _particle_number, double temp, double time_interval, unsigned long _TIME,
+         double box, char *ensemble_out_file, char *particle_out_file);
+
+    ~Ensemble();
 
     // return particle of that index
     inline Particle& operator[] (const int);
@@ -29,9 +32,7 @@ public:
 
     // calculation <a> between a pair of particles
     inline void calc_acceleration(Particle&, Particle&);
-
-    inline void iteration(const unsigned, const unsigned, ofstream&, ofstream&);
-
+    inline void iteration();
     inline void output(ofstream&);
 
 
@@ -43,16 +44,26 @@ private:
     unsigned particle_number;
     double ensemble_potential;
     double ensemble_kinetic;
+    ofstream ensemble_out;
+    ofstream particle_out;
+
+    const unsigned long TIME;
+    const unsigned long SAMPLE_RATE;
+
     const double TEMP;
     const double BOX;
     Rdf rdf;
 };
 
 
-Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, double box): 
-    particle_number(_particle_number), TEMP(temp), BOX(box), 
-    ensemble(_particle_number, Particle(32, 1, 1, time_interval)), 
-    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box) {
+Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_interval, unsigned long _TIME, double box, 
+    char *ensemble_out_file, char *particle_out_file): 
+    particle_number(_particle_number), TEMP(temp), BOX(box), ensemble(_particle_number, Particle(32, 1, 1, time_interval)), 
+    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
+    ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
+
+        cout << "[MD LOG]\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
+        cout << "[MD LOG]\tParticle trajectory data output to \"" << particle_out_file << "\" ..." << endl;
 
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
@@ -135,6 +146,13 @@ Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_int
         }
 }
 
+Ensemble::~Ensemble() {
+    ensemble_out.close();
+    particle_out.close();
+
+    cout << "[MD LOG]\tOutput file saved" << endl;
+}
+
 // use ensemble[index] to call particle's method
 Particle& Ensemble::operator[] (const int index) {
     return ensemble[index];
@@ -197,14 +215,14 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
 
 
 void Ensemble::output(ofstream& fout) {
-    fout << ensemble_potential << "\t" << ensemble_kinetic << "\t" << (ensemble_potential + ensemble_kinetic) << "\n";
+    fout << ensemble_potential << "    " << ensemble_kinetic << "    " << (ensemble_potential + ensemble_kinetic) << endl;
 }
 
 
 // basic interation step of velocity verlet
-void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& particle_out, ofstream& ensemble_out) {
-    int i = 0;
-    while (i <= time) {
+void Ensemble::iteration() {
+    unsigned long i = 0;
+    while (i <= TIME) {
         // Initialize ensemble energy
         ensemble_kinetic = 0;
         ensemble_potential = 0;
@@ -248,11 +266,15 @@ void Ensemble::iteration(const unsigned time, const unsigned index, ofstream& pa
         ensemble_potential /= 2;
 
         // output
-        if (i % 100 == 0) {
-            ensemble[index].output(particle_out);
+        if (i % SAMPLE_RATE == 0) {
+            // show the trajectory of one particle
+            ensemble[1].output(particle_out);
+
             output(ensemble_out);
 
             rdf.sample(ensemble);
+
+            cout << "[MD LOG]\tIteration " << i << " is sampled..." << endl;            
         }
         ++i;
     }
