@@ -16,7 +16,7 @@ friend double distance2(Particle&, Particle&, double);
 
 public:
     // Initializer, receive the initial status of the particle
-    Particle(double, double, double, double);
+    Particle(double _time_interval);
 
     // Copy initializer
     Particle(const Particle&);
@@ -32,9 +32,6 @@ public:
 
     // calculate the current kinetic energy of the particle
     inline void kinetic();
-
-    // output to file
-    inline void output(ofstream&);
 
 protected:
     // position
@@ -60,35 +57,16 @@ protected:
     double potential_value;
     double kinetic_value;
 
-    const double mass;
-    const double epsilon;
-    const double sigma;
-
-    // cutoff distance and corresponding potential energy
-    const double rcut;
-    const double ecut;
-
-    // distance threshold of neighborlist
-    const double rlist2;
-
     const double time_interval;
 };
 
 
-Particle::Particle(double _mass, double _epsilon, double _sigma, double _time_interval): 
-    v_x(0), v_y(0), v_z(0), pos_x(0), pos_y(0), pos_z(0),
-    mass(_mass), epsilon(_epsilon), sigma(_sigma), time_interval(_time_interval),
-    rcut(2.5 * sigma), ecut(4.0 * (pow(sigma / rcut, 12) - pow(sigma / rcut, 6))),
-    rlist2(sigma * sigma * 12.25) {
-        if (mass <= 0) {
-            throw runtime_error("Error: invalid mass");
-        }
-}
+Particle::Particle(double _time_interval): 
+    v_x(0), v_y(0), v_z(0), pos_x(0), pos_y(0), pos_z(0), time_interval(_time_interval) { }
 
 // Copy initializer
-Particle::Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), 
-    pos_y(other.pos_y), pos_z(other.pos_z),mass(other.mass), epsilon(other.epsilon), sigma(other.sigma),
-    time_interval(other.time_interval), rcut(other.rcut), ecut(other.ecut), rlist2(other.rlist2) { }
+Particle::Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(other.v_z), pos_x(other.pos_x), pos_y(other.pos_y),
+    pos_z(other.pos_z), time_interval(other.time_interval) { }
 
 
 void Particle::lattice_pos(int n) {
@@ -130,14 +108,8 @@ void Particle::velocity() {
 
 // calculate the current kinetic energy of the particle
 void Particle::kinetic() {
-    kinetic_value = 0.5 * mass * (v_x * v_x + v_y * v_y + v_z * v_z);
+    kinetic_value = 0.5 * (v_x * v_x + v_y * v_y + v_z * v_z);
 }
 
-// output to file
-void Particle::output(ofstream& fout) {
-    fout << pos_x << "    " << pos_y << "    " << pos_z << "    " << v_x << "    " << v_y << "    " << v_z << "    " 
-        << a_x_B << "    " << a_y_B << "    " << a_z_B << "    " << potential_value << "    " << kinetic_value 
-        << "    " << potential_value + kinetic_value << endl;
-}
 
 #endif

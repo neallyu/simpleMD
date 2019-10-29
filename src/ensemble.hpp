@@ -20,9 +20,9 @@ friend class Neighborlist;
 friend class Rdf;
 
 public:
-    // Initializer
-    Ensemble(const unsigned _particle_number, double temp, double time_interval, unsigned long _TIME,
-         double box, char *ensemble_out_file, char *particle_out_file);
+    // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
+    Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
+    unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file);
 
     ~Ensemble();
 
@@ -35,7 +35,8 @@ public:
     // calculation <a> between a pair of particles
     inline void calc_acceleration(Particle&, Particle&);
     inline void iteration();
-    inline void output(ofstream&);
+    inline void energy_output(unsigned long i, ofstream& fout);
+    inline void particle_movement_output(unsigned long i, Particle& particle, ofstream& fout);
 
 
 private:
@@ -52,17 +53,27 @@ private:
 
     const unsigned long TIME;
     const unsigned long SAMPLE_RATE;
+    const double TIME_INTERVAL;
+
+    // cutoff distance and corresponding potential energy
+    const double rcut;
+    const double ecut;
+
+    // distance threshold of neighborlist
+    const double rlist2;
 
     const double TEMP;
     const double BOX;
     Rdf rdf;
 };
 
-
-Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
-    unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file): 
-    particle_number(_particle_number), TEMP(temp), BOX(box), unit(sigma, epsilon, mass), 
-    nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box), TIME(_TIME), SAMPLE_RATE(_TIME / 1000),
+// box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
+Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, 
+    double time_interval, unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file): 
+    particle_number(_particle_number), unit(sigma, epsilon, mass), TEMP(unit.reduced_temperature(temp)), 
+    BOX(unit.reduced_distance(box * 1e10)), TIME_INTERVAL(unit.real_time_interval(time_interval)), 
+    ensemble(_particle_number, Particle(time_interval)),rcut(2.5), ecut(4.0 * (pow(1 / rcut, 12) - pow(1 / rcut, 6))),
+    rlist2(12.25), nlist(ensemble, box, rlist2), rdf(1000, BOX), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
     ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
 
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
@@ -105,7 +116,7 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
 
         sumv2 /= particle_number;
 
-        double fs = sqrt(3 * TEMP / (sumv2 * ensemble[0].mass));
+        double fs = sqrt(3 * TEMP / sumv2);
 
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             particle->v_x = (particle->v_x - sumv_x) * fs;
@@ -188,26 +199,23 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
 
     double r2 = dx * dx + dy * dy + dz * dz;
 
-    if (r2 <= particle1.rcut * particle1.rcut) {
-
-        double r2i = particle1.sigma * particle1.sigma / r2;
-
+    if (r2 <= rcut * rcut) {
+        double r2i = 1 / r2;
         double r6i = pow(r2i, 3);
 
-        double force_x = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dx / r2;
-        double force_y = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dy / r2;
-        double force_z = 48.0 * particle1.epsilon * r6i * (r6i - 0.5) * dz / r2;
+        double force_x = 48.0 * r6i * r2i * (r6i - 0.5) * dx;
+        double force_y = 48.0 * r6i * r2i * (r6i - 0.5) * dy;
+        double force_z = 48.0 * r6i * r2i * (r6i - 0.5) * dz;
 
+        particle1.a_x_B += force_x;
+        particle1.a_y_B += force_y;
+        particle1.a_z_B += force_z;
 
-        particle1.a_x_B += (force_x / particle1.mass);
-        particle1.a_y_B += (force_y / particle1.mass);
-        particle1.a_z_B += (force_z / particle1.mass);
+        particle2.a_x_B -= force_x;
+        particle2.a_y_B -= force_y;
+        particle2.a_z_B -= force_z;
 
-        particle2.a_x_B -= (force_x / particle2.mass);
-        particle2.a_y_B -= (force_y / particle2.mass);
-        particle2.a_z_B -= (force_z / particle2.mass);
-
-        particle1.potential_value += (4.0 * particle1.epsilon * r6i * ( r6i - 1 ) - particle1.ecut);
+        particle1.potential_value += (4.0 * r6i * ( r6i - 1 ) - ecut);
     }
 
     if (r2 > nlist.rlist2) {
@@ -216,8 +224,19 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
 }
 
 
-void Ensemble::output(ofstream& fout) {
-    fout << ensemble_potential << "    " << ensemble_kinetic << "    " << (ensemble_potential + ensemble_kinetic) << endl;
+void Ensemble::energy_output(unsigned long i, ofstream& fout) {
+    fout << i * TIME_INTERVAL << "    " << unit.real_energy(ensemble_potential) << "    " << unit.real_energy(ensemble_kinetic) << "    " 
+    << unit.real_energy(ensemble_potential + ensemble_kinetic) << endl;
+}
+
+
+// // output to file
+void Ensemble::particle_movement_output(unsigned long i, Particle& particle, ofstream& fout) {
+    fout << i * TIME_INTERVAL << "    " << unit.real_distance(particle.pos_x) << "    " << unit.real_distance(particle.pos_y) << "    " << unit.real_distance(particle.pos_z) << "    " 
+        << unit.real_velocity(particle.v_x) << "    " << unit.real_velocity(particle.v_y) << "    " << unit.real_velocity(particle.v_z) << "    " 
+        << unit.real_acceleration(particle.a_x_B) << "    " << unit.real_acceleration(particle.a_y_B) << "    " << unit.real_acceleration(particle.a_z_B) << "    " 
+        << unit.real_energy(particle.potential_value) << "    " << unit.real_energy(particle.kinetic_value) 
+        << "    " << unit.real_energy(particle.potential_value + particle.kinetic_value) << endl;
 }
 
 
@@ -264,8 +283,8 @@ void Ensemble::iteration() {
         // output
         if (i % SAMPLE_RATE == 0) {
             // show the trajectory of one particle
-            ensemble[1].output(particle_out);
-            output(ensemble_out);
+            particle_movement_output(i, ensemble[1], particle_out);
+            energy_output(i, ensemble_out);
             rdf.sample(ensemble);
         }
         ++i;

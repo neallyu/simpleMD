@@ -14,6 +14,18 @@ public:
         return _distance * SIGMA;
     }
 
+    double reduced_distance(double _distance) {
+        return _distance / SIGMA;
+    }
+
+    double real_velocity(double _velocity) {
+        return sqrt(EPSILON / MASS) * _velocity;
+    }
+
+    double real_acceleration(double _acceleration) {
+        return _acceleration * EPSILON / (MASS * SIGMA);
+    }
+
     double real_time_interval(double _time_interval) {
         return SIGMA * sqrt(MASS / EPSILON) * _time_interval;
     }
@@ -22,7 +34,7 @@ public:
         return EPSILON * _temperature / kb;
     }
 
-    double reduced_temerature(double _temperature) {
+    double reduced_temperature(double _temperature) {
         return kb *_temperature / EPSILON;
     }
 
@@ -34,12 +46,8 @@ public:
         return _density / pow(SIGMA, 3);
     }
 
-    double real_potential_energy(double _potential_energy) {
-        return _potential_energy * EPSILON;
-    }
-
-    double real_kinetic_energy(double _kinetic_energy) {
-        return _kinetic_energy * EPSILON;
+    double real_energy(double _energy) {
+        return _energy * EPSILON;
     }
 
 private:
