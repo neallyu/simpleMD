@@ -9,6 +9,7 @@
 #include "particle.hpp"
 #include "neighborlist.hpp"
 #include "radial_distribution_function.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
@@ -62,8 +63,8 @@ Ensemble::Ensemble(const unsigned _particle_number, double temp, double time_int
     nlist(ensemble, box, ensemble[0].rlist2), rdf(1000, box), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
     ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
 
-        cout << "[MD LOG]\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
-        cout << "[MD LOG]\tParticle trajectory data output to \"" << particle_out_file << "\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" << particle_out_file << "\" ..." << endl;
 
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
@@ -150,7 +151,7 @@ Ensemble::~Ensemble() {
     ensemble_out.close();
     particle_out.close();
 
-    cout << "[MD LOG]\tOutput file saved" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tOutput file saved" << endl;
 }
 
 // use ensemble[index] to call particle's method
@@ -274,7 +275,7 @@ void Ensemble::iteration() {
 
             rdf.sample(ensemble);
 
-            cout << "[MD LOG]\tIteration " << i << " is sampled..." << endl;            
+            // cout << "[MD LOG]\tIteration " << i << " is sampled..." << endl;            
         }
         ++i;
     }
