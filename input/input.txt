@@ -1,0 +1,9 @@
+Molecule             Argon(Ar)
+Particle_number      100
+Sigma(Angstrom)      3.41
+Epsilon(KJ/mol)      0.996078441772
+Mass(g/mol)          39.948
+Temperature(K)       130
+Time_interval(ps)    1
+Total_time(ns)       100
+Box_size(Angstrom)   50

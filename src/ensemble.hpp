@@ -22,7 +22,7 @@ friend class Rdf;
 public:
     // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
     Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
-    unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file);
+    unsigned long _TIME, double box);
 
     ~Ensemble();
 
@@ -62,7 +62,7 @@ private:
 
     Rdf rdf;
 
-    const unsigned long TIME;
+    const double TIME;
     const unsigned long SAMPLE_RATE;
 
     double ensemble_potential;
@@ -73,15 +73,19 @@ private:
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
 Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, 
-    double time_interval, unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file): 
+    double time_interval, unsigned long _TIME, double box): 
     particle_number(_particle_number), unit(sigma, epsilon, mass), TEMP(unit.reduced_temperature(temp)), 
-    BOX(unit.reduced_distance(box * 1e-10)), TIME_INTERVAL(unit.real_time_interval(time_interval)), 
-    ensemble(_particle_number, Particle(time_interval)),rcut(2.5), ecut(4.0 * (pow(1 / rcut, 12) - pow(1 / rcut, 6))),
-    rlist2(12.25), nlist(ensemble, BOX, rlist2), rdf(1000, BOX), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
-    ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
+    BOX(unit.reduced_distance(box * 1e-10)), TIME_INTERVAL(unit.reduced_time(time_interval * 1e-12)), 
+    ensemble(_particle_number, Particle(TIME_INTERVAL)),rcut(2.5), ecut(4.0 * (pow(1 / rcut, 12) - pow(1 / rcut, 6))),
+    rlist2(12.25), nlist(ensemble, BOX, rlist2), rdf(1000, BOX), TIME(unit.reduced_time(_TIME * 1e-9)), SAMPLE_RATE(TIME / 1000), 
+    ensemble_out("../output/energy.csv"), particle_out("../output/particle.csv") {
 
-        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" << particle_out_file << "\" ..." << endl;
+        cout << "TIME_Interval: " << TIME_INTERVAL << endl;
+        cout << "time" << TIME << endl;
+        cout << "sample rate: " << SAMPLE_RATE << endl;
+
+        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"../output/particle.csv\" ..." << endl;
 
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator

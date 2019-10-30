@@ -8,7 +8,7 @@ class Unit_conversion {
 public:
     // receive format: sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
     Unit_conversion(double _sigma, double _epsilon, double _mass): 
-        SIGMA(_sigma * 1e-10), EPSILON(_epsilon * 1000 / NA), MASS(_mass * 1000 / NA) { }
+        SIGMA(_sigma * 1e-10), EPSILON(_epsilon * 1000 / NA), MASS(_mass / (1000 * NA)) { }
 
     double real_distance(double _distance) {
         return _distance * SIGMA;
@@ -26,8 +26,12 @@ public:
         return _acceleration * EPSILON / (MASS * SIGMA);
     }
 
-    double real_time_interval(double _time_interval) {
-        return SIGMA * sqrt(MASS / EPSILON) * _time_interval;
+    double real_time(double _time) {
+        return SIGMA * sqrt(MASS / EPSILON) * _time;
+    }
+
+    double reduced_time(double _time) {
+        return _time * sqrt(EPSILON / MASS) / SIGMA;
     }
 
     double real_temperature(double _temperature) {
