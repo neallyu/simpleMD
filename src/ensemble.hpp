@@ -40,40 +40,44 @@ public:
 
 
 private:
+    // Initialize unit conversion
+    Unit_conversion unit;
 
+    // reduced unit (calculated from sigma, epsilon, mass)
+    const double TEMP;
+    const double BOX;
+    const double TIME_INTERVAL;
+
+    // main container of the particle ensemble
+    unsigned particle_number;
     vector<Particle> ensemble;
+
+    // cutoff distance, cutoff potential energy and distance threshold of neighborlist
+    const double rcut;
+    const double ecut;
+    const double rlist2;
+
     Neighborlist nlist;
     bool need_update_nlist;
-    unsigned particle_number;
+
+    Rdf rdf;
+
+    const unsigned long TIME;
+    const unsigned long SAMPLE_RATE;
+
     double ensemble_potential;
     double ensemble_kinetic;
     ofstream ensemble_out;
     ofstream particle_out;
-    Unit_conversion unit;
-
-    const unsigned long TIME;
-    const unsigned long SAMPLE_RATE;
-    const double TIME_INTERVAL;
-
-    // cutoff distance and corresponding potential energy
-    const double rcut;
-    const double ecut;
-
-    // distance threshold of neighborlist
-    const double rlist2;
-
-    const double TEMP;
-    const double BOX;
-    Rdf rdf;
 };
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
 Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, 
     double time_interval, unsigned long _TIME, double box, char *ensemble_out_file, char *particle_out_file): 
     particle_number(_particle_number), unit(sigma, epsilon, mass), TEMP(unit.reduced_temperature(temp)), 
-    BOX(unit.reduced_distance(box * 1e10)), TIME_INTERVAL(unit.real_time_interval(time_interval)), 
+    BOX(unit.reduced_distance(box * 1e-10)), TIME_INTERVAL(unit.real_time_interval(time_interval)), 
     ensemble(_particle_number, Particle(time_interval)),rcut(2.5), ecut(4.0 * (pow(1 / rcut, 12) - pow(1 / rcut, 6))),
-    rlist2(12.25), nlist(ensemble, box, rlist2), rdf(1000, BOX), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
+    rlist2(12.25), nlist(ensemble, BOX, rlist2), rdf(1000, BOX), TIME(_TIME), SAMPLE_RATE(_TIME / 1000), 
     ensemble_out(ensemble_out_file), particle_out(particle_out_file) {
 
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" << ensemble_out_file << "\" ..." << endl;
