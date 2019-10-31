@@ -23,6 +23,7 @@ def energy_plot(path, input_filename):
 
     plt.legend()
     plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
 
 
 def particle_plot(path, input_filename):
@@ -69,13 +70,17 @@ def particle_plot(path, input_filename):
     plt3.legend()
 
     plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
 
 
 def rdf_plot(path, input_filename):
     data = np.loadtxt(path + input_filename)
 
-    r = data[:, 0]
-    g = data[:, 1]
+    r = []
+    for i in data[:, 0]:
+        if i <= 2.5:
+            r.append(i)
+    g = data[:len(r), 1]
 
     fig = plt.figure(1, dpi=500, figsize=(7.4, 4.8), facecolor="white")
     ax = fig.add_subplot(111)
@@ -87,6 +92,8 @@ def rdf_plot(path, input_filename):
 
     plt.legend()
     plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
+
 
 if __name__ == "__main__":
     path = __file__[:-12] + "../output/"

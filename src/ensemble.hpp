@@ -22,7 +22,7 @@ friend class Rdf;
 public:
     // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
     Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
-    unsigned long _TIME, double box);
+    double total_time, double box);
 
     ~Ensemble();
 
@@ -47,6 +47,9 @@ private:
     const double TEMP;
     const double BOX;
     const double TIME_INTERVAL;
+    const double TOTAL_TIME;
+    const unsigned long ITERATION;
+    const unsigned long SAMPLE_RATE;
 
     // main container of the particle ensemble
     unsigned particle_number;
@@ -62,8 +65,6 @@ private:
 
     Rdf rdf;
 
-    const double TIME;
-    const unsigned long SAMPLE_RATE;
 
     double ensemble_potential;
     double ensemble_kinetic;
@@ -73,16 +74,25 @@ private:
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
 Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, 
-    double time_interval, unsigned long _TIME, double box): 
-    particle_number(_particle_number), unit(sigma, epsilon, mass), TEMP(unit.reduced_temperature(temp)), 
-    BOX(unit.reduced_distance(box * 1e-10)), TIME_INTERVAL(unit.reduced_time(time_interval * 1e-12)), 
-    ensemble(_particle_number, Particle(TIME_INTERVAL)),rcut(2.5), ecut(4.0 * (pow(1 / rcut, 12) - pow(1 / rcut, 6))),
-    rlist2(12.25), nlist(ensemble, BOX, rlist2), rdf(1000, BOX), TIME(unit.reduced_time(_TIME * 1e-9)), SAMPLE_RATE(TIME / 1000), 
+    double time_interval, double total_time, double box): 
+    particle_number(_particle_number), unit(sigma, epsilon, mass), 
+    TEMP(unit.reduced_temperature(temp)), 
+    BOX(unit.reduced_distance(box * 1e-10)), 
+    TIME_INTERVAL(unit.reduced_time(time_interval * 1e-15)), 
+    TOTAL_TIME(unit.reduced_time(total_time * 1e-9)), 
+    ITERATION(TOTAL_TIME / TIME_INTERVAL),
+    SAMPLE_RATE(ITERATION / 1000),
+    ensemble(_particle_number, Particle(TIME_INTERVAL)),
+    rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
+    nlist(ensemble, BOX, rlist2), 
+    rdf(1000, BOX), 
     ensemble_out("../output/energy.csv"), particle_out("../output/particle.csv") {
 
         cout << "TIME_Interval: " << TIME_INTERVAL << endl;
-        cout << "time: " << TIME << endl;
-        cout << "sample rate: " << SAMPLE_RATE << endl;
+        cout << "Total_time: " << TOTAL_TIME << endl;
+        cout << "Iteration: " << ITERATION << endl;
+        cout << "Sample rate: " << SAMPLE_RATE << endl;
+        cout << "BOX:" << BOX << endl;
 
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;
         cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"../output/particle.csv\" ..." << endl;
@@ -233,14 +243,14 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
 
 
 void Ensemble::energy_output(unsigned long i, ofstream& fout) {
-    fout << i * TIME_INTERVAL << "    " << unit.real_energy(ensemble_potential) << "    " << unit.real_energy(ensemble_kinetic) << "    " 
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_energy(ensemble_potential) << "    " << unit.real_energy(ensemble_kinetic) << "    " 
     << unit.real_energy(ensemble_potential + ensemble_kinetic) << endl;
 }
 
 
 // // output to file
 void Ensemble::particle_movement_output(unsigned long i, Particle& particle, ofstream& fout) {
-    fout << i * TIME_INTERVAL << "    " << unit.real_distance(particle.pos_x) << "    " << unit.real_distance(particle.pos_y) << "    " << unit.real_distance(particle.pos_z) << "    " 
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_distance(particle.pos_x) << "    " << unit.real_distance(particle.pos_y) << "    " << unit.real_distance(particle.pos_z) << "    " 
         << unit.real_velocity(particle.v_x) << "    " << unit.real_velocity(particle.v_y) << "    " << unit.real_velocity(particle.v_z) << "    " 
         << unit.real_acceleration(particle.a_x_B) << "    " << unit.real_acceleration(particle.a_y_B) << "    " << unit.real_acceleration(particle.a_z_B) << "    " 
         << unit.real_energy(particle.potential_value) << "    " << unit.real_energy(particle.kinetic_value) 
@@ -251,7 +261,7 @@ void Ensemble::particle_movement_output(unsigned long i, Particle& particle, ofs
 // basic interation step of velocity verlet
 void Ensemble::iteration() {
     unsigned long i = 0;
-    while (i <= TIME) {
+    while (i <= ITERATION) {
         // Initialize ensemble energy
         ensemble_kinetic = 0;
         ensemble_potential = 0;

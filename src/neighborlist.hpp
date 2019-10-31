@@ -41,11 +41,14 @@ void Neighborlist::update_neighbor_list(vector<Particle> &ensemble) {
 // is on atom i's list, the opposite is not true.
     #pragma omp parallel
     for (int i = 0; i < nlist.size() - 1; ++i) {
+        // cout << "Particle (" << i << "):";
         for (int j = i + 1; j < nlist.size(); ++j) {
             if (calc_distance2(ensemble[i], ensemble[j]) < rlist2) {
                 nlist[i].push_back(j);
+                // cout << j << " ";
             }
         }
+        // cout << endl;
     }
 }
 

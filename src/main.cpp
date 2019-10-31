@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     double MASS;
     double temp;
     double time_interval;
-    unsigned long TIME;
+    double total_time;
     double box;
 
     try {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
                     time_interval = stod(parameter);
                     break;
                 case 15:
-                    TIME = stol(parameter);
+                    total_time = stod(parameter);
                     break;
                 case 17:
                     box = stod(parameter);
@@ -77,14 +77,14 @@ int main(int argc, char *argv[]) {
     cout << "[MD LOG] " << get_current_time() << "\tepsilon: " << epsilon << " kJ/mol"<< endl;
     cout << "[MD LOG] " << get_current_time() << "\tmass: " << MASS << " g/mol" << endl;
     cout << "[MD LOG] " << get_current_time() << "\ttemperature: " << temp << " K" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << " ps" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << TIME << " ns" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << " fs" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << total_time << " ns" << endl;
     cout << "[MD LOG] " << get_current_time() << "\tbox size: " << box << " Angstrom" << endl;
 
     cout << "[MD LOG] " << get_current_time() << "\tInitializing calculation..." << endl;
     
     // Initialize the ensemble
-    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, temp, time_interval, TIME, box);
+    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, temp, time_interval, total_time, box);
 
     cout << "[MD LOG] " <<  get_current_time() << "\tStarting main interation..." << endl;
     ensemble1.iteration();
