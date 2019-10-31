@@ -6,5 +6,6 @@
 *.csv
 .vs/*
 main
+test
 script/venv/*
 script/.idea/*

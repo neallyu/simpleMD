@@ -12,7 +12,7 @@ using namespace std;
 class Rdf {
 
 public:
-    Rdf(int _nbins, double _BOX): nbins(_nbins), BOX(_BOX), n(0), rdf_output("../output/rdf_output.csv") {
+    Rdf(int _nbins, double _BOX): nbins(_nbins), BOX(_BOX), n(0), rdf_output("../output/rdf.csv") {
         g.resize(nbins, 0.0);
         bin_width = BOX / (2.0 * nbins);
     }

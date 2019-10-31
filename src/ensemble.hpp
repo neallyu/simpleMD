@@ -81,7 +81,7 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     ensemble_out("../output/energy.csv"), particle_out("../output/particle.csv") {
 
         cout << "TIME_Interval: " << TIME_INTERVAL << endl;
-        cout << "time" << TIME << endl;
+        cout << "time: " << TIME << endl;
         cout << "sample rate: " << SAMPLE_RATE << endl;
 
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;

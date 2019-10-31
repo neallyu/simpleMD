@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sys, getopt
+import sys, time
 
 
 def energy_plot(path, input_filename):
@@ -22,7 +22,7 @@ def energy_plot(path, input_filename):
     ax.set_ylabel("energy/J")
 
     plt.legend()
-    plt.savefig(path + input_filename[:-4] + "_energy.png")
+    plt.savefig(path + input_filename[:-4] + ".png")
 
 
 def particle_plot(path, input_filename):
@@ -68,7 +68,7 @@ def particle_plot(path, input_filename):
     plt3.set_ylabel("acceleration/(m/s2)")
     plt3.legend()
 
-    plt.savefig(path + input_filename[:-4] + "_movement.png")
+    plt.savefig(path + input_filename[:-4] + ".png")
 
 
 def rdf_plot(path, input_filename):
@@ -86,24 +86,16 @@ def rdf_plot(path, input_filename):
     ax.set_ylabel("g(r) (Normalized)")
 
     plt.legend()
-    plt.savefig(path + input_filename[:-4] + "_rdf.png")
+    plt.savefig(path + input_filename[:-4] + ".png")
 
 if __name__ == "__main__":
-
-    path = "../src/"
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hi:erp")
-    except getopt.GetoptError:
-        print('Error command line')
-        sys.exit(2)
-
-    for opt, arg in opts:
-        if opt == "-i":
-            input_filename = arg
-        elif opt == "-e":
-            energy_plot(path, input_filename)
-        elif opt == "-p":
-            particle_plot(path, input_filename)
-        elif opt == "-r":
-            rdf_plot(path, input_filename)
+    path = __file__[:-12] + "../output/"
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting energy.csv")
+    energy_plot(path, "energy.csv")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to energy.png")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting particle.csv")
+    particle_plot(path, "particle.csv")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to particle.png")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting rdf.csv")
+    rdf_plot(path, "rdf.csv")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to rdf.png")
