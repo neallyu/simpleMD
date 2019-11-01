@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
     double sigma;
     double epsilon;
     double MASS;
-    double temp;
+    double init_temp;
+    double set_temp;
     double time_interval;
+    double equilibration_time;
     double total_time;
     double box;
 
@@ -45,21 +47,27 @@ int main(int argc, char *argv[]) {
                     MASS = stod(parameter);
                     break;            
                 case 11:
-                    temp = stod(parameter);
+                    init_temp = stod(parameter);
                     break;
                 case 13:
-                    time_interval = stod(parameter);
+                    set_temp = stod(parameter);
                     break;
                 case 15:
-                    total_time = stod(parameter);
+                    time_interval = stod(parameter);
                     break;
                 case 17:
+                    equilibration_time = stod(parameter);
+                    break;
+                case 19:
+                    total_time = stod(parameter);
+                    break;
+                case 21:
                     box = stod(parameter);
                     break;
             }
             ++i;
         }
-        if (i != 18) {
+        if (i != 22) {
             throw ReadingFile_Other();
         }
     } catch (ReadingFile_Open e) {
@@ -76,15 +84,17 @@ int main(int argc, char *argv[]) {
     cout << "[MD LOG] " << get_current_time() << "\tsigma: " << sigma << " Angstrom" << endl;
     cout << "[MD LOG] " << get_current_time() << "\tepsilon: " << epsilon << " kJ/mol"<< endl;
     cout << "[MD LOG] " << get_current_time() << "\tmass: " << MASS << " g/mol" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttemperature: " << temp << " K" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tinitial temperature: " << init_temp << " K" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tequilibration temperature: " << set_temp << " K" << endl;
     cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << " fs" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tequilibration time: " << equilibration_time << " ns" << endl;
     cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << total_time << " ns" << endl;
     cout << "[MD LOG] " << get_current_time() << "\tbox size: " << box << " Angstrom" << endl;
 
     cout << "[MD LOG] " << get_current_time() << "\tInitializing calculation..." << endl;
     
     // Initialize the ensemble
-    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, temp, time_interval, total_time, box);
+    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, init_temp, set_temp, time_interval, equilibration_time, total_time, box);
 
     cout << "[MD LOG] " <<  get_current_time() << "\tStarting main interation..." << endl;
     ensemble1.iteration();

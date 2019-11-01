@@ -25,6 +25,24 @@ def energy_plot(path, input_filename):
     plt.savefig(path + input_filename[:-4] + ".png")
     plt.clf()
 
+def temperature_plot(path, input_filename):
+    data = np.loadtxt(path + input_filename)
+
+    time = data[:, 0]
+    temperature = data[:, 1]
+
+    fig = plt.figure(1, dpi=500, figsize=(7.4, 4.8), facecolor="white")
+    ax = fig.add_subplot(111)
+
+    ax.plot(time, temperature, color="orange", label="temperature")
+
+    ax.set_xlabel("time/s")
+    ax.set_ylabel("temperature/K")
+
+    plt.legend()
+    plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
+
 
 def particle_plot(path, input_filename):
     data = np.loadtxt(path + input_filename)
@@ -100,6 +118,9 @@ if __name__ == "__main__":
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting energy.csv")
     energy_plot(path, "energy.csv")
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to energy.png")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting temperature.csv")
+    temperature_plot(path, "temperature.csv")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to temperature.png")
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting particle.csv")
     particle_plot(path, "particle.csv")
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to particle.png")

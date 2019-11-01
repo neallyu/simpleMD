@@ -21,102 +21,98 @@ friend class Rdf;
 
 public:
     // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
-    Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, double time_interval, 
-    double total_time, double box);
+    Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, double set_temp, double time_interval, 
+    double equilibration_time, double total_time, double box);
 
+    // close file stream
     ~Ensemble();
 
-    // return particle of that index
-    inline Particle& operator[] (const int);
+    // return object of particle of that index
+    inline Particle& operator[] (const int index);
 
-    // return distance^2 between two particles
-    inline double calc_distance2(Particle&, Particle&);
+    // calculation acceleration between a pair of particles
+    inline void calc_acceleration(Particle& particle1, Particle& particle2);
 
-    // calculation <a> between a pair of particles
-    inline void calc_acceleration(Particle&, Particle&);
+    // correct the instaneous temperature by rescaling
+    inline void rescale_temperature();
+
+    // main iteration
     inline void iteration();
+
     inline void energy_output(unsigned long i, ofstream& fout);
     inline void particle_movement_output(unsigned long i, Particle& particle, ofstream& fout);
-
+    inline void temperature_output(unsigned long i, ofstream& fout);
 
 private:
-    // Initialize unit conversion
-    Unit_conversion unit;
-
-    // reduced unit (calculated from sigma, epsilon, mass)
-    const double TEMP;
-    const double BOX;
-    const double TIME_INTERVAL;
-    const double TOTAL_TIME;
-    const unsigned long ITERATION;
-    const unsigned long SAMPLE_RATE;
-
-    // main container of the particle ensemble
-    unsigned particle_number;
-    vector<Particle> ensemble;
-
-    // cutoff distance, cutoff potential energy and distance threshold of neighborlist
-    const double rcut;
-    const double ecut;
-    const double rlist2;
-
-    Neighborlist nlist;
-    bool need_update_nlist;
-
-    Rdf rdf;
-
-
-    double ensemble_potential;
-    double ensemble_kinetic;
-    ofstream ensemble_out;
-    ofstream particle_out;
+    Unit_conversion unit;                           // Initialize unit conversion by sigma, epsilon, mass
+    // all variable below are in reduced unit
+    const double INIT_TEMP;                         // initial temperature before equilibration
+    const double SET_TEMP;                          // set temperature after equilibration
+    double TEMP;                                    // instaneous temperature
+    const double BOX;                               // box dimension size
+    const double TIME_INTERVAL;                     // machine time interval
+    const double EQUILIBRATION_TIME;                // euquilibration time
+    const double TOTAL_TIME;                        // total time
+    const unsigned long EQUILIBRATION_ITERATION;    // iteration cycles of equilibration
+    const unsigned long ITERATION;                  // total iteration cycles
+    const unsigned long SAMPLE_RATE;                // sample rate defined as (iteration / 1000) such that the result contains 1000 points
+    unsigned particle_number;                       // particle number
+    vector<Particle> ensemble;                      // main container of the particle ensemble
+    const double rcut;                              // cutoff distance defined as 2.5 (reduced unit)
+    const double ecut;                              // cutoff potential energy, calculated from 4.0 * (1 / pow(rcut, 12) - 1/ pow(rcut, 6))
+    const double rlist2;                            // square of distance threshold of neighborlist defined as 3.5^2 (reduced unit)
+    Neighborlist nlist;                             // object of neighborlist
+    bool need_update_nlist;                         // whether or not to update the neighborlist
+    Rdf rdf;                                        // object of radial distribution function
+    double ensemble_potential;                      // potential energy of ensemble
+    double ensemble_kinetic;                        // kinetic energy of ensemble
+    ofstream ensemble_out;                          // output file stream of energy
+    ofstream particle_out;                          // output file stream of trajectory of selected particle
+    ofstream temperature_out;                       // output file stream of temperature
 };
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
-Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double temp, 
-    double time_interval, double total_time, double box): 
+Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, 
+    double set_temp, double time_interval, double equilibration_time, double total_time, double box): 
     particle_number(_particle_number), unit(sigma, epsilon, mass), 
-    TEMP(unit.reduced_temperature(temp)), 
+    INIT_TEMP(unit.reduced_temperature(init_temp)),
+    SET_TEMP(unit.reduced_temperature(set_temp)), TEMP(0),
     BOX(unit.reduced_distance(box * 1e-10)), 
     TIME_INTERVAL(unit.reduced_time(time_interval * 1e-15)), 
+    EQUILIBRATION_TIME(unit.reduced_time(equilibration_time * 1e-9)),
     TOTAL_TIME(unit.reduced_time(total_time * 1e-9)), 
+    EQUILIBRATION_ITERATION(EQUILIBRATION_TIME / TIME_INTERVAL),
     ITERATION(TOTAL_TIME / TIME_INTERVAL),
     SAMPLE_RATE(ITERATION / 1000),
     ensemble(_particle_number, Particle(TIME_INTERVAL)),
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
     rdf(1000, BOX), 
-    ensemble_out("../output/energy.csv"), particle_out("../output/particle.csv") {
-
-        cout << "TIME_Interval: " << TIME_INTERVAL << endl;
-        cout << "Total_time: " << TOTAL_TIME << endl;
-        cout << "Iteration: " << ITERATION << endl;
-        cout << "Sample rate: " << SAMPLE_RATE << endl;
-        cout << "BOX:" << BOX << endl;
-
+    ensemble_out("../output/energy.csv"),
+    particle_out("../output/particle.csv"),
+    temperature_out("../output/temperature.csv")
+    {
+        cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tSample rate: " << SAMPLE_RATE << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tMachine box:" << BOX << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;
         cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"../output/particle.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"../output/temperature.csv\" ..." << endl;
 
+        // initialize the postion and velocity of particles
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
-
         double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
         double sumv2(0.0);
-
         int i = 0; // for lattice pos
-
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-
             particle->lattice_pos(i + 1);
             ++i;
-
-            particle->pos_x += 0.01 * (displacement(random_generator) - 0.5);
-            // cout << "Initial position: " << particle->pos_x << "\t";
-            particle->pos_y += 0.01 * (displacement(random_generator) - 0.5);
-            // cout << particle->pos_y << "\t";
-            particle->pos_z += 0.01 * (displacement(random_generator) - 0.5);
-            // cout << particle->pos_z << endl;
-
+            particle->pos_x += 0.01 * (displacement(random_generator) - 0.5); // cout << "Initial position: " << particle->pos_x << "\t";
+            particle->pos_y += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_y << "\t";
+            particle->pos_z += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_z << endl;
             particle->v_x = displacement(random_generator) - 0.5;
             particle->v_y = displacement(random_generator) - 0.5;
             particle->v_z = displacement(random_generator) - 0.5;
@@ -124,25 +120,17 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
             sumv_x += particle->v_x;
             sumv_y += particle->v_y;
             sumv_z += particle->v_z;
-
             sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
         }
-
         sumv_x /= particle_number;
         sumv_y /= particle_number;
         sumv_z /= particle_number;
-
         sumv2 /= particle_number;
-
-        double fs = sqrt(3 * TEMP / sumv2);
-
+        double fs = sqrt(3 * INIT_TEMP / sumv2);
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            particle->v_x = (particle->v_x - sumv_x) * fs;
-            // cout << "Initial velocity: " << particle->v_x << "\t";
-            particle->v_y = (particle->v_y - sumv_y) * fs;
-            // cout << particle->v_y << "\t";
-            particle->v_z = (particle->v_z - sumv_z) * fs;
-            // cout << particle->v_z << endl;
+            particle->v_x = (particle->v_x - sumv_x) * fs; // cout << "Initial velocity: " << particle->v_x << "\t";
+            particle->v_y = (particle->v_y - sumv_y) * fs; // cout << particle->v_y << "\t";
+            particle->v_z = (particle->v_z - sumv_z) * fs; // cout << particle->v_z << endl;
         }
 
         // Initialize neighborlist
@@ -162,12 +150,10 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
             }
         }
 
+        // execute movement and initialize a_B
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            // execute x and v propagation
             particle->movement();
             particle->velocity();
-
-            // record a_A and initialize a_B
             particle->a_x_A = particle->a_x_B;
             particle->a_y_A = particle->a_y_B;
             particle->a_z_A = particle->a_z_B;
@@ -178,30 +164,18 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
         }
 }
 
+
 Ensemble::~Ensemble() {
     ensemble_out.close();
     particle_out.close();
-
+    temperature_out.close();
     cout << "[MD LOG] " << get_current_time() << "\tOutput file saved" << endl;
 }
+
 
 // use ensemble[index] to call particle's method
 Particle& Ensemble::operator[] (const int index) {
     return ensemble[index];
-}
-
-
-double Ensemble::calc_distance2(Particle& particle1, Particle& particle2) {
-    double dx = particle1.pos_x - particle2.pos_x;
-    double dy = particle1.pos_y - particle2.pos_y;
-    double dz = particle1.pos_z - particle2.pos_z;
-
-    // periodic boundary conditions
-    dx -= BOX * round(dx / BOX);
-    dy -= BOX * round(dy / BOX);
-    dz -= BOX * round(dz / BOX);
-
-    return dx * dx + dy * dy + dz * dz;
 }
 
 
@@ -216,49 +190,72 @@ void Ensemble::calc_acceleration(Particle& particle1, Particle& particle2) {
     dz -= BOX * round(dz / BOX);
 
     double r2 = dx * dx + dy * dy + dz * dz;
-
     if (r2 <= rcut * rcut) {
         double r2i = 1 / r2;
         double r6i = pow(r2i, 3);
-
         double force_x = 48.0 * r6i * r2i * (r6i - 0.5) * dx;
         double force_y = 48.0 * r6i * r2i * (r6i - 0.5) * dy;
         double force_z = 48.0 * r6i * r2i * (r6i - 0.5) * dz;
-
         particle1.a_x_B += force_x;
         particle1.a_y_B += force_y;
         particle1.a_z_B += force_z;
-
         particle2.a_x_B -= force_x;
         particle2.a_y_B -= force_y;
         particle2.a_z_B -= force_z;
-
         particle1.potential_value += (4.0 * r6i * ( r6i - 1 ) - ecut);
     }
-
     if (r2 > nlist.rlist2) {
         need_update_nlist = true;
     }
 }
 
 
-void Ensemble::energy_output(unsigned long i, ofstream& fout) {
-    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_energy(ensemble_potential) << "    " << unit.real_energy(ensemble_kinetic) << "    " 
-    << unit.real_energy(ensemble_potential + ensemble_kinetic) << endl;
+void Ensemble::rescale_temperature() {
+    double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
+    double sumv2(0.0);
+    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+        sumv_x += particle->v_x;
+        sumv_y += particle->v_y;
+        sumv_z += particle->v_z;
+        sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
+    }
+    sumv_x /= particle_number;
+    sumv_y /= particle_number;
+    sumv_z /= particle_number;
+    sumv2 /= particle_number;
+    TEMP = sumv2 / 3;
+    double fs = sqrt(SET_TEMP / TEMP);
+    for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
+        particle->v_x = (particle->v_x - sumv_x) * fs;
+        particle->v_y = (particle->v_y - sumv_y) * fs;
+        particle->v_z = (particle->v_z - sumv_z) * fs;
+    }
 }
 
 
-// // output to file
+void Ensemble::energy_output(unsigned long i, ofstream& fout) {
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_energy(ensemble_potential) 
+        << "    " << unit.real_energy(ensemble_kinetic) << "    " 
+        << unit.real_energy(ensemble_potential + ensemble_kinetic) << endl;
+}
+
+
 void Ensemble::particle_movement_output(unsigned long i, Particle& particle, ofstream& fout) {
-    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_distance(particle.pos_x) << "    " << unit.real_distance(particle.pos_y) << "    " << unit.real_distance(particle.pos_z) << "    " 
-        << unit.real_velocity(particle.v_x) << "    " << unit.real_velocity(particle.v_y) << "    " << unit.real_velocity(particle.v_z) << "    " 
-        << unit.real_acceleration(particle.a_x_B) << "    " << unit.real_acceleration(particle.a_y_B) << "    " << unit.real_acceleration(particle.a_z_B) << "    " 
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_distance(particle.pos_x) << "    " 
+        << unit.real_distance(particle.pos_y) << "    " << unit.real_distance(particle.pos_z) << "    " 
+        << unit.real_velocity(particle.v_x) << "    " << unit.real_velocity(particle.v_y) << "    " 
+        << unit.real_velocity(particle.v_z) << "    " << unit.real_acceleration(particle.a_x_A) << "    " 
+        << unit.real_acceleration(particle.a_y_A) << "    " << unit.real_acceleration(particle.a_z_A) << "    " 
         << unit.real_energy(particle.potential_value) << "    " << unit.real_energy(particle.kinetic_value) 
         << "    " << unit.real_energy(particle.potential_value + particle.kinetic_value) << endl;
 }
 
 
-// basic interation step of velocity verlet
+void Ensemble::temperature_output(unsigned long i, ofstream& fout) {
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_temperature(TEMP) << endl;
+}
+
+
 void Ensemble::iteration() {
     unsigned long i = 0;
     while (i <= ITERATION) {
@@ -278,12 +275,18 @@ void Ensemble::iteration() {
             need_update_nlist = false;
         }
 
+        // initialize summary of velocity
+        double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
+        double sumv2(0.0);
         // calculate velocity of step B
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            // record energy
-            particle->kinetic();
             ensemble_potential += particle->potential_value;
-            ensemble_kinetic += particle->kinetic_value;
+
+            // get the instaneous temperature
+            sumv_x += particle->v_x;
+            sumv_y += particle->v_y;
+            sumv_z += particle->v_z;
+            sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
 
             // execute x and v propagation
             particle->movement();
@@ -298,16 +301,24 @@ void Ensemble::iteration() {
             particle->a_z_B = 0;
             particle->potential_value = 0;
         }
-        // output
+        ensemble_kinetic = 0.5 * sumv2;
+        TEMP = sumv2 / (3 * particle_number);
+
+        // after equilibration iteration of initial equilibrition, control temperature by rescaling
+        if (i >= EQUILIBRATION_ITERATION) {
+            rescale_temperature();
+            if (i % SAMPLE_RATE == 0) {
+                particle_movement_output(i, ensemble[1], particle_out);
+                energy_output(i, ensemble_out);
+                rdf.sample(ensemble);
+            }
+        }
+
         if (i % SAMPLE_RATE == 0) {
-            // show the trajectory of one particle
-            particle_movement_output(i, ensemble[1], particle_out);
-            energy_output(i, ensemble_out);
-            rdf.sample(ensemble);
+            temperature_output(i, temperature_out);
         }
         ++i;
     }
-
     rdf.normalize(particle_number);
     rdf.output();
 }
