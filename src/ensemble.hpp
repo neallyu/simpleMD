@@ -306,11 +306,11 @@ void Ensemble::iteration() {
 
         // after equilibration iteration of initial equilibrition, control temperature by rescaling
         if (i >= EQUILIBRATION_ITERATION) {
-            rescale_temperature();
             if (i % SAMPLE_RATE == 0) {
                 particle_movement_output(i, ensemble[1], particle_out);
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
+                rescale_temperature();
             }
         }
 

@@ -7,5 +7,6 @@
 .vs/*
 main
 test
+output/*
 script/venv/*
 script/.idea/*
