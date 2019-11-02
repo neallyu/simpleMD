@@ -7,6 +7,7 @@
 .vs/*
 main
 test
-output/*
+output/*.png
+output/*.csv
 script/venv/*
 script/.idea/*
