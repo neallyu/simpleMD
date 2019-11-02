@@ -1,13 +1,6 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include <fstream>
-#include <cmath>
-#include <stdexcept>
-#include <iostream>
-
-using namespace std;
-
 class Particle {
 
 friend class Ensemble;
@@ -94,22 +87,18 @@ void Particle::lattice_pos(int n) {
     
 // execute movement
 void Particle::movement() {
-    // Euler algorithm
-    pos_x = pos_x + v_x * time_interval + 0.5 * a_x_A * time_interval * time_interval;
-    // cout << "pos_x: " << pos_x;
-    pos_y = pos_y + v_y * time_interval + 0.5 * a_y_A * time_interval * time_interval;
-    // cout << "\tpos_y: " << pos_y;
-    pos_z = pos_z + v_z * time_interval + 0.5 * a_z_A * time_interval * time_interval;
-    // cout << "\tpos_z: " << pos_z << endl;
-    // cout << "axa:" << a_x_A << "\taya:" << a_y_A << "\taza:" << a_z_A << endl;
-    // cout << "===============" << endl;
+    // Use velocity verlet algorithm
+    pos_x += v_x * time_interval + 0.5 * a_x_A * time_interval * time_interval;
+    pos_y += v_y * time_interval + 0.5 * a_y_A * time_interval * time_interval;
+    pos_z += v_z * time_interval + 0.5 * a_z_A * time_interval * time_interval;
 }
 
 
-void Particle::velocity() {                
-    v_x = v_x + (a_x_A + a_x_B) * 0.5 * time_interval;
-    v_y = v_y + (a_y_A + a_y_B) * 0.5 * time_interval;
-    v_z = v_z + (a_z_A + a_z_B) * 0.5 * time_interval;
+void Particle::velocity() {
+    // Use velocity verlet algorithm 
+    v_x += (a_x_A + a_x_B) * 0.5 * time_interval;
+    v_y += (a_y_A + a_y_B) * 0.5 * time_interval;
+    v_z += (a_z_A + a_z_B) * 0.5 * time_interval;
 }
 
 // calculate the current kinetic energy of the particle

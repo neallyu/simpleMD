@@ -1,13 +1,8 @@
-
 .DS_Store
-*.png
-*.log
 *.json
-*.csv
 .vs/*
 main
 test
-output/*.png
-output/*.csv
+output/*
 script/venv/*
 script/.idea/*
