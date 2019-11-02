@@ -10,7 +10,7 @@ g++ --std=c++11 src/main.cpp -o src/main
 ## Install python dependencies
 ```
 cd script
-pip3 install -r requrements.txt
+pip3 install -r requirements.txt
 ```
 ## Input parameter
 All parameters are preset in input/input.txt
