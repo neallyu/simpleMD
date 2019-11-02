@@ -56,6 +56,7 @@ private:
     const unsigned long EQUILIBRATION_ITERATION;    // iteration cycles of equilibration
     const unsigned long ITERATION;                  // total iteration cycles
     const unsigned long SAMPLE_RATE;                // sample rate defined as (iteration / 1000) such that the result contains 1000 points
+    float ITERATION_PERCENTAGE;                      // percentage of main iteration
     unsigned particle_number;                       // particle number
     vector<Particle> ensemble;                      // main container of the particle ensemble
     const double rcut;                              // cutoff distance defined as 2.5 (reduced unit)
@@ -318,10 +319,13 @@ void Ensemble::iteration() {
         }
 
         if (i % SAMPLE_RATE == 0) {
+            ITERATION_PERCENTAGE = ((float) i / (float) ITERATION) * 100;
+            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed\t" << flush;
             temperature_output(i, temperature_out);
         }
         ++i;
     }
+    cout << endl;   // output a new line for the progess log
     rdf.normalize(particle_number);
     rdf.output();
 }
