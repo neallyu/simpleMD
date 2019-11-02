@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 #include <random>
+#include <sys/stat.h>
 #include "particle.hpp"
 #include "neighborlist.hpp"
 #include "unit_conversion.hpp"
@@ -93,6 +94,8 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     particle_out("../output/particle.csv"),
     temperature_out("../output/temperature.csv")
     {
+        mkdir("../output", S_IRWXU | S_IRGRP | S_IROTH);
+
         cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
