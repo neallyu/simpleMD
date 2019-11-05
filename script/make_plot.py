@@ -113,6 +113,25 @@ def rdf_plot(path, input_filename):
     plt.clf()
 
 
+def diffusion_plot(path, input_filename):
+    data = np.loadtxt(path + input_filename)
+
+    time = data[:, 0]
+    msd = data[:, 1]
+
+    fig = plt.figure(1, dpi=500, figsize=(7.4, 4.8), facecolor="white")
+    ax = fig.add_subplot(111)
+
+    ax.plot(time, msd, color="orange", label="mean squared displacement")
+
+    ax.set_xlabel("time/s")
+    ax.set_ylabel("MSD/m^2")
+
+    plt.legend()
+    plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
+
+
 if __name__ == "__main__":
     path = __file__[:-12] + "../output/"
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting energy.csv")
@@ -127,3 +146,6 @@ if __name__ == "__main__":
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting rdf.csv")
     rdf_plot(path, "rdf.csv")
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to rdf.png")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting diffusion.csv")
+    diffusion_plot(path, "diffusion.csv")
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to diffusion.png")

@@ -11,6 +11,7 @@
 #include "neighborlist.hpp"
 #include "unit_conversion.hpp"
 #include "radial_distribution_function.hpp"
+#include "diffusion.hpp"
 #include "utils.hpp"
 
 using namespace std;
@@ -19,6 +20,7 @@ class Ensemble {
 
 friend class Neighborlist;
 friend class Rdf;
+friend class Diffusion;
 
 public:
     // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
@@ -43,6 +45,7 @@ public:
     inline void energy_output(unsigned long i, ofstream& fout);
     inline void particle_movement_output(unsigned long i, Particle& particle, ofstream& fout);
     inline void temperature_output(unsigned long i, ofstream& fout);
+    inline void diffusion_output(unsigned long i, double _MSD, ofstream& fout);
 
 private:
     Unit_conversion unit;                           // Initialize unit conversion by sigma, epsilon, mass
@@ -66,11 +69,13 @@ private:
     Neighborlist nlist;                             // object of neighborlist
     bool need_update_nlist;                         // whether or not to update the neighborlist
     Rdf rdf;                                        // object of radial distribution function
+    Diffusion diffusion;                            // object of mean squared displacement calculation
     double ensemble_potential;                      // potential energy of ensemble
     double ensemble_kinetic;                        // kinetic energy of ensemble
     ofstream ensemble_out;                          // output file stream of energy
     ofstream particle_out;                          // output file stream of trajectory of selected particle
     ofstream temperature_out;                       // output file stream of temperature
+    ofstream diffusion_out;                         // output file stream of diffusion
 };
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
@@ -90,9 +95,11 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
     rdf(1000, BOX), 
+    diffusion(),
     ensemble_out("../output/energy.csv"),
     particle_out("../output/particle.csv"),
-    temperature_out("../output/temperature.csv")
+    temperature_out("../output/temperature.csv"),
+    diffusion_out("../output/diffusion.csv")
     {
         mkdir("../output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
@@ -104,6 +111,7 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
         cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;
         cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"../output/particle.csv\" ..." << endl;
         cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"../output/temperature.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"../output/diffusion.csv\" ..." << endl;
 
         // initialize the postion and velocity of particles
         default_random_engine random_generator;
@@ -173,6 +181,7 @@ Ensemble::~Ensemble() {
     ensemble_out.close();
     particle_out.close();
     temperature_out.close();
+    diffusion_out.close();
     cout << "[MD LOG] " << get_current_time() << "\tOutput file saved" << endl;
 }
 
@@ -259,6 +268,10 @@ void Ensemble::temperature_output(unsigned long i, ofstream& fout) {
     fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_temperature(TEMP) << endl;
 }
 
+void Ensemble::diffusion_output(unsigned long i, double _MSD, ofstream& fout) {
+    fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_distance(_MSD) << endl;
+}
+
 
 void Ensemble::iteration() {
     unsigned long i = 0;
@@ -311,6 +324,7 @@ void Ensemble::iteration() {
         // after equilibration iteration of initial equilibrition, control temperature by rescaling
         if (i == EQUILIBRATION_ITERATION) {
             rescale_temperature();
+            diffusion.initalize(ensemble);
         }
 
         if (i >= EQUILIBRATION_ITERATION) {
@@ -318,6 +332,7 @@ void Ensemble::iteration() {
                 particle_movement_output(i, ensemble[1], particle_out);
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
+                diffusion_output(i, diffusion.calc_mean_square_particle_displacement(ensemble), diffusion_out);
             }
         }
 
