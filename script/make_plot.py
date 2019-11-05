@@ -113,7 +113,7 @@ def rdf_plot(path, input_filename):
     plt.clf()
 
 
-def diffusion_plot(path, input_filename):
+def msd_plot(path, input_filename):
     data = np.loadtxt(path + input_filename)
 
     time = data[:, 0]
@@ -132,20 +132,36 @@ def diffusion_plot(path, input_filename):
     plt.clf()
 
 
+def velocity_autocorr_plot(path, input_filename):
+    data = np.loadtxt(path + input_filename)
+
+    time = data[:, 0]
+    velocity_autocorr = data[:, 1]
+
+    fig = plt.figure(1, dpi=500, figsize=(7.4, 4.8), facecolor="white")
+    ax = fig.add_subplot(111)
+
+    ax.plot(time, velocity_autocorr, color="orange", label="velocity autocorrelation function")
+
+    ax.set_xlabel("time/s")
+    ax.set_ylabel("velocity autocorrelation")
+
+    plt.legend()
+    plt.savefig(path + input_filename[:-4] + ".png")
+    plt.clf()
+
+
+def process(path, filename, plot_function):
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting", filename)
+    plot_function(path, filename)
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to", filename)
+
+
 if __name__ == "__main__":
     path = __file__[:-12] + "../output/"
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting energy.csv")
-    energy_plot(path, "energy.csv")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to energy.png")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting temperature.csv")
-    temperature_plot(path, "temperature.csv")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to temperature.png")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting particle.csv")
-    particle_plot(path, "particle.csv")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to particle.png")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting rdf.csv")
-    rdf_plot(path, "rdf.csv")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to rdf.png")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting diffusion.csv")
-    diffusion_plot(path, "diffusion.csv")
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to diffusion.png")
+    process(path, "energy.csv", energy_plot)
+    process(path, "temperature.csv", temperature_plot)
+    process(path, "particle.csv", particle_plot)
+    process(path, "rdf.csv", rdf_plot)
+    process(path, "msd.csv", msd_plot)
+    process(path, "velocity_autocorr.csv", velocity_autocorr_plot)

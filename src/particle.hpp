@@ -5,7 +5,7 @@ class Particle {
 
 friend class Ensemble;
 friend class Neighborlist;
-friend class Diffusion;
+friend class Property;
 friend double distance(Particle&, Particle&, double);
 friend double distance2(Particle&, Particle&, double);
 
