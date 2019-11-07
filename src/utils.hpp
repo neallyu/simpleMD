@@ -34,6 +34,11 @@ double distance2(Particle &particle1, Particle &particle2, double BOX) {
 }
 
 
+double calc_velocity(Particle& particle) {
+    return sqrt(pow(particle.v_x, 2) + pow(particle.v_y, 2) + pow(particle.v_z, 2));
+}
+
+
 std::string get_current_time() {
     time_t now = std::time(0);
     tm *ltm = std::localtime(&now);

@@ -151,7 +151,7 @@ def velocity_autocorr_plot(path, input_filename):
     plt.clf()
 
 
-def process(path, filename, plot_function):
+def mk_plot(path, filename, plot_function):
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting", filename)
     plot_function(path, filename)
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to", filename)
@@ -159,9 +159,9 @@ def process(path, filename, plot_function):
 
 if __name__ == "__main__":
     path = __file__[:-12] + "../output/"
-    process(path, "energy.csv", energy_plot)
-    process(path, "temperature.csv", temperature_plot)
-    process(path, "particle.csv", particle_plot)
-    process(path, "rdf.csv", rdf_plot)
-    process(path, "msd.csv", msd_plot)
-    process(path, "velocity_autocorr.csv", velocity_autocorr_plot)
+    mk_plot(path, "energy.csv", energy_plot)
+    mk_plot(path, "temperature.csv", temperature_plot)
+    mk_plot(path, "particle.csv", particle_plot)
+    mk_plot(path, "rdf.csv", rdf_plot)
+    mk_plot(path, "msd.csv", msd_plot)
+    mk_plot(path, "velocity_autocorr.csv", velocity_autocorr_plot)

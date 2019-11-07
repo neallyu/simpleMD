@@ -46,7 +46,6 @@ public:
     inline void particle_movement_output(unsigned long i, Particle& particle, ofstream& fout);
     inline void temperature_output(unsigned long i, ofstream& fout);
     inline void msd_output(unsigned long i, double _MSD, ofstream& fout);
-    inline void velocity_autocorr_output(unsigned long i, double _velocity_autocorr, ofstream &fout);
 
 private:
     Unit_conversion unit;                           // Initialize unit conversion by sigma, epsilon, mass
@@ -77,7 +76,6 @@ private:
     ofstream particle_out;                          // output file stream of trajectory of selected particle
     ofstream temperature_out;                       // output file stream of temperature
     ofstream msd_out;                               // output file stream of mean square displacement
-    ofstream velocity_autocorr_out;                 // output file stream of velocity autocorrelation function
 };
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
@@ -97,12 +95,11 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
     rdf(1000, BOX), 
-    property(),
+    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1),
     ensemble_out("../output/energy.csv"),
     particle_out("../output/particle.csv"),
     temperature_out("../output/temperature.csv"),
-    msd_out("../output/msd.csv"),
-    velocity_autocorr_out("../output/velocity_autocorr.csv")
+    msd_out("../output/msd.csv")
     {
         mkdir("../output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
@@ -186,7 +183,6 @@ Ensemble::~Ensemble() {
     particle_out.close();
     temperature_out.close();
     msd_out.close();
-    velocity_autocorr_out.close();
     cout << "[MD LOG] " << get_current_time() << "\tOutput file saved" << endl;
 }
 
@@ -277,11 +273,6 @@ void Ensemble::msd_output(unsigned long i, double _MSD, ofstream& fout) {
     fout << i * unit.real_time(TIME_INTERVAL) << "    " << pow(unit.real_distance(sqrt(_MSD)), 2) << endl;
 }
 
-void Ensemble::velocity_autocorr_output(unsigned long i, double _velocity_autocorr, ofstream& fout) {
-    fout << i * unit.real_time(TIME_INTERVAL) << "    " << _velocity_autocorr << endl;
-}
-
-
 void Ensemble::iteration() {
     unsigned long i = 0;
     while (i <= ITERATION) {
@@ -342,7 +333,10 @@ void Ensemble::iteration() {
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
                 msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
-                velocity_autocorr_output(i, property.calc_velocity_autocorrelation(ensemble), velocity_autocorr_out);
+
+            }
+            if (i <= EQUILIBRATION_ITERATION + 1000) {
+                property.sample_velocity_autocorrelation(ensemble);
             }
         }
 
@@ -356,6 +350,8 @@ void Ensemble::iteration() {
     cout << endl;   // output a new line for the progess log
     rdf.normalize(particle_number);
     rdf.output();
+    property.calc_velocity_autocorrelation();
+    property.velocity_autocorr_output();
 }
 
 
