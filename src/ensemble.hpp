@@ -14,6 +14,7 @@
 #include "radial_distribution_function.hpp"
 #include "property.hpp"
 #include "utils.hpp"
+#include "error_handling.hpp"
 
 using namespace std;
 
@@ -107,7 +108,11 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     temperature_out(output_path + "/temperature.csv"),
     msd_out(output_path + "/msd.csv")
     {
-        mkdir(output_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        try {
+            mkdir(output_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        } catch (CreatingOutputPath e) {
+            cerr << "[MD ERR] " << get_current_time() << "\tError in: " << e.what() << endl;
+        }
 
         cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
