@@ -7,14 +7,12 @@
 #include <iostream>
 #include <cmath>
 #include <random>
-#include <sys/stat.h>
 #include "particle.hpp"
 #include "neighborlist.hpp"
 #include "unit_conversion.hpp"
 #include "radial_distribution_function.hpp"
 #include "property.hpp"
 #include "utils.hpp"
-#include "error_handling.hpp"
 
 using namespace std;
 
@@ -72,11 +70,11 @@ private:
     const double rlist2;                            // square of distance threshold of neighborlist defined as 3.5^2 (reduced unit)
     Neighborlist nlist;                             // object of neighborlist
     bool need_update_nlist;                         // whether or not to update the neighborlist
+    string output_path;                             // output path
     Rdf rdf;                                        // object of radial distribution function
     Property property;                              // object of mean squared displacement calculation
     double ensemble_potential;                      // potential energy of ensemble
     double ensemble_kinetic;                        // kinetic energy of ensemble
-    string output_path;
     ofstream ensemble_out;                          // output file stream of energy
     ofstream particle_out;                          // output file stream of trajectory of selected particle
     ofstream temperature_out;                       // output file stream of temperature
@@ -100,20 +98,14 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     ensemble(_particle_number, Particle(TIME_INTERVAL)),
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
-    rdf(1000, BOX), 
-    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1),
     output_path(_output_path),
+    rdf(1000, BOX, output_path), 
+    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, output_path),
     ensemble_out(output_path + "/energy.csv"),
     particle_out(output_path + "/particle.csv"),
     temperature_out(output_path + "/temperature.csv"),
     msd_out(output_path + "/msd.csv")
     {
-        try {
-            mkdir(output_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        } catch (CreatingOutputPath e) {
-            cerr << "[MD ERR] " << get_current_time() << "\tError in: " << e.what() << endl;
-        }
-
         cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
@@ -128,6 +120,7 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
         // initialize the postion and velocity of particles
         default_random_engine random_generator;
         uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
+        normal_distribution<double> norm_dis(0.0, 1.0);
         double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
         double sumv2(0.0);
         int i = 0; // for lattice pos
@@ -137,9 +130,9 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
             particle->pos_x += 0.01 * (displacement(random_generator) - 0.5); // cout << "Initial position: " << particle->pos_x << "\t";
             particle->pos_y += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_y << "\t";
             particle->pos_z += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_z << endl;
-            particle->v_x = displacement(random_generator) - 0.5;
-            particle->v_y = displacement(random_generator) - 0.5;
-            particle->v_z = displacement(random_generator) - 0.5;
+            particle->v_x = norm_dis(random_generator);
+            particle->v_y = norm_dis(random_generator);
+            particle->v_z = norm_dis(random_generator);
 
             sumv_x += particle->v_x;
             sumv_y += particle->v_y;
@@ -362,9 +355,9 @@ void Ensemble::iteration() {
                 particle_movement_output(i, ensemble[1], particle_out);
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
-                msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
             }
-            if (i <= EQUILIBRATION_ITERATION + 1000) {
+            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 11000) {
+                msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
                 property.sample_velocity_autocorrelation(ensemble);
             }
         }

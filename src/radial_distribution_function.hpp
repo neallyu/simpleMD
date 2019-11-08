@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
+#include <string>
 #include "ensemble.hpp"
 #include "utils.hpp"
 
@@ -12,7 +13,9 @@ using namespace std;
 class Rdf {
 
 public:
-    Rdf(int _nbins, double _BOX): nbins(_nbins), BOX(_BOX), n(0), rdf_output("../output/rdf.csv") {
+    Rdf(int _nbins, double _BOX, string _output_path): 
+        nbins(_nbins), BOX(_BOX), n(0), 
+        rdf_output(_output_path + "/rdf.csv") {
         g.resize(nbins, 0.0);
         bin_width = BOX / (2.0 * nbins);
     }

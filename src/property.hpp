@@ -7,13 +7,15 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 class Property {
 
 public:
-    Property(int _sample_point):v_index(0), autocorr(0), v_avg(0), velocity_autocorr_out("../output/velocity_autocorr.csv") { }
+    Property(int _sample_point, string _output_path):v_index(0), autocorr(0), v_avg(0), 
+        velocity_autocorr_out(_output_path + "/velocity_autocorr.csv") { }
 
     void initalize(vector<Particle> ensemble) {
         for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {

@@ -1,6 +1,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <sys/stat.h>
 #include "error_handling.hpp"
 #include "ensemble.hpp"
 #include "utils.hpp"
@@ -70,12 +71,18 @@ int main(int argc, char *argv[]) {
         if (i != 22) {
             throw ReadingFile_Other();
         }
+        if (!mkdir(argv[2], S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) {
+            throw CreatingOutputPath();
+        }
+
     } catch (ReadingFile_Open e) {
-        cerr << "[MD ERR] "<< get_current_time() << "\tError in reading input file: " << e.what() << endl;
+        cerr << "[MD ERR] " << get_current_time() << "\tError in reading input file: " << e.what() << endl;
         return 0;
     } catch (ReadingFile_Other e) {
-        cerr << "[MD ERR] "<< get_current_time() << "\tError in reading input file: " << e.what() << endl;
+        cerr << "[MD ERR] " << get_current_time() << "\tError in reading input file: " << e.what() << endl;
         return 0;
+    } catch (CreatingOutputPath e) {
+        cerr << "[MD ERR] " << get_current_time() << "\tError in: " << e.what() << endl;
     }
 
     cout << "[MD LOG] " << get_current_time() << "\tParameters is successfully inputed" << endl;
