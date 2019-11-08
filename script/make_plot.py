@@ -158,10 +158,10 @@ def mk_plot(path, filename, plot_function):
 
 
 if __name__ == "__main__":
-    path = __file__[:-12] + "../output/"
+    path = __file__[:-12] + sys.argv[1] + "/"
     mk_plot(path, "energy.csv", energy_plot)
     mk_plot(path, "temperature.csv", temperature_plot)
     mk_plot(path, "particle.csv", particle_plot)
-    mk_plot(path, "rdf.csv", rdf_plot)
     mk_plot(path, "msd.csv", msd_plot)
+    mk_plot(path, "rdf.csv", rdf_plot)
     mk_plot(path, "velocity_autocorr.csv", velocity_autocorr_plot)

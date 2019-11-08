@@ -30,5 +30,5 @@ Box_size(Angstrom)       30
 ## Usage
 ```
 cd src
-./main ../input/input.txt && python3 ../script/make_plot.py
+./main ../input/input.txt ../output && python3 ../script/make_plot.py ../output
 ```

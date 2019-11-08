@@ -24,10 +24,10 @@ public:
     double calc_mean_square_particle_displacement(vector<Particle>& ensemble) {
         double MSD(0);
         for (int i = 0; i < ensemble.size(); ++i) {
-            // MSD += pow((ensemble[i].pos_x - Start_status[i].pos_x), 2) + 
-            //     pow((ensemble[i].pos_y - Start_status[i].pos_y), 2) + 
-            //     pow((ensemble[i].pos_z - Start_status[i].pos_z), 2);
-            MSD += pow(ensemble[i].pos_x - Start_status[i].pos_x, 2);
+            MSD += pow((ensemble[i].pos_x - Start_status[i].pos_x), 2) + 
+                pow((ensemble[i].pos_y - Start_status[i].pos_y), 2) + 
+                pow((ensemble[i].pos_z - Start_status[i].pos_z), 2);
+            // MSD += pow(ensemble[i].pos_x - Start_status[i].pos_x, 2);
         }
         return MSD / ensemble.size();
     }

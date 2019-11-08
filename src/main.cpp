@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     cout << "[MD LOG] " << get_current_time() << "\tInitializing calculation..." << endl;
     
     // Initialize the ensemble
-    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, init_temp, set_temp, time_interval, equilibration_time, total_time, box);
+    Ensemble ensemble1(particle_number, sigma, epsilon, MASS, init_temp, set_temp, time_interval, equilibration_time, total_time, box, argv[2]);
 
     cout << "[MD LOG] " <<  get_current_time() << "\tStarting main interation..." << endl;
     ensemble1.iteration();

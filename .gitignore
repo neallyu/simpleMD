@@ -3,6 +3,6 @@
 .vs/*
 main
 test
-output/*
+output*
 script/venv/*
 script/.idea/*

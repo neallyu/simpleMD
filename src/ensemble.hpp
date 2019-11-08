@@ -2,6 +2,7 @@
 #define ENSEMBLE_H
 
 #include <vector>
+#include <string>
 #include <fstream>
 #include <iostream>
 #include <cmath>
@@ -25,7 +26,7 @@ friend class Property;
 public:
     // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
     Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, double set_temp, double time_interval, 
-    double equilibration_time, double total_time, double box);
+    double equilibration_time, double total_time, double box, string _output_path);
 
     // close file stream
     ~Ensemble();
@@ -38,6 +39,8 @@ public:
 
     // correct the instaneous temperature by rescaling
     inline void rescale_temperature();
+
+    inline void Andersen_thermostat(double collision_frequency);
 
     // main iteration
     inline void iteration();
@@ -72,6 +75,7 @@ private:
     Property property;                              // object of mean squared displacement calculation
     double ensemble_potential;                      // potential energy of ensemble
     double ensemble_kinetic;                        // kinetic energy of ensemble
+    string output_path;
     ofstream ensemble_out;                          // output file stream of energy
     ofstream particle_out;                          // output file stream of trajectory of selected particle
     ofstream temperature_out;                       // output file stream of temperature
@@ -80,10 +84,11 @@ private:
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
 Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, 
-    double set_temp, double time_interval, double equilibration_time, double total_time, double box): 
+    double set_temp, double time_interval, double equilibration_time, double total_time, double box, string _output_path): 
     particle_number(_particle_number), unit(sigma, epsilon, mass), 
     INIT_TEMP(unit.reduced_temperature(init_temp)),
-    SET_TEMP(unit.reduced_temperature(set_temp)), TEMP(0),
+    SET_TEMP(unit.reduced_temperature(set_temp)), 
+    TEMP(0),
     BOX(unit.reduced_distance(box * 1e-10)), 
     TIME_INTERVAL(unit.reduced_time(time_interval * 1e-15)), 
     EQUILIBRATION_TIME(unit.reduced_time(equilibration_time * 1e-9)),
@@ -96,23 +101,24 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     nlist(ensemble, BOX, rlist2), 
     rdf(1000, BOX), 
     property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1),
-    ensemble_out("../output/energy.csv"),
-    particle_out("../output/particle.csv"),
-    temperature_out("../output/temperature.csv"),
-    msd_out("../output/msd.csv")
+    output_path(_output_path),
+    ensemble_out(output_path + "/energy.csv"),
+    particle_out(output_path + "/particle.csv"),
+    temperature_out(output_path + "/temperature.csv"),
+    msd_out(output_path + "/msd.csv")
     {
-        mkdir("../output", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        mkdir(output_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
         cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tSample rate: " << SAMPLE_RATE << endl;
         cout << "[MD LOG] " << get_current_time() << "\tMachine box:" << BOX << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"../output/energy.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"../output/particle.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"../output/temperature.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"../output/msd.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"../output/velocity_autocorr.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" + output_path + "/energy.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" + output_path + "/particle.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"" + output_path + "/temperature.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + output_path + "/msd.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + output_path + "/velocity_autocorr.csv\" ..." << endl;
 
         // initialize the postion and velocity of particles
         default_random_engine random_generator;
@@ -247,6 +253,24 @@ void Ensemble::rescale_temperature() {
 }
 
 
+void Ensemble::Andersen_thermostat(double collision_frequency) {
+    double sigma = sqrt(SET_TEMP);
+    double scale_factor;
+    default_random_engine random_generator;
+    normal_distribution<double> gauss(0, sigma);
+    uniform_real_distribution<double> ranf(0.0, 1.0);
+    for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {
+        if (ranf(random_generator) < collision_frequency) {
+            scale_factor = gauss(random_generator) / calc_velocity(*it);
+            it->v_x *= scale_factor;
+            it->v_y *= scale_factor;
+            it->v_z *= scale_factor;
+            scale_factor = 0;
+        }
+    }
+}
+
+
 void Ensemble::energy_output(unsigned long i, ofstream& fout) {
     fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_energy(ensemble_potential) 
         << "    " << unit.real_energy(ensemble_kinetic) << "    " 
@@ -323,17 +347,17 @@ void Ensemble::iteration() {
 
         // after equilibration iteration of initial equilibrition, control temperature by rescaling
         if (i == EQUILIBRATION_ITERATION) {
-            rescale_temperature();
+            // rescale_temperature();
             property.initalize(ensemble);
         }
 
         if (i >= EQUILIBRATION_ITERATION) {
+            Andersen_thermostat(1e-4);
             if (i % SAMPLE_RATE == 0) {
                 particle_movement_output(i, ensemble[1], particle_out);
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
                 msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
-
             }
             if (i <= EQUILIBRATION_ITERATION + 1000) {
                 property.sample_velocity_autocorrelation(ensemble);
