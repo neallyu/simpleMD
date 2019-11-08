@@ -70,7 +70,6 @@ private:
     const double rlist2;                            // square of distance threshold of neighborlist defined as 3.5^2 (reduced unit)
     Neighborlist nlist;                             // object of neighborlist
     bool need_update_nlist;                         // whether or not to update the neighborlist
-    string output_path;                             // output path
     Rdf rdf;                                        // object of radial distribution function
     Property property;                              // object of mean squared displacement calculation
     double ensemble_potential;                      // potential energy of ensemble
@@ -98,24 +97,23 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     ensemble(_particle_number, Particle(TIME_INTERVAL)),
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
-    output_path(_output_path),
-    rdf(1000, BOX, output_path), 
-    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, output_path),
-    ensemble_out(output_path + "/energy.csv"),
-    particle_out(output_path + "/particle.csv"),
-    temperature_out(output_path + "/temperature.csv"),
-    msd_out(output_path + "/msd.csv")
+    rdf(1000, BOX, _output_path), 
+    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, _output_path),
+    ensemble_out(_output_path + "/energy.csv"),
+    particle_out(_output_path + "/particle.csv"),
+    temperature_out(_output_path + "/temperature.csv"),
+    msd_out(_output_path + "/msd.csv")
     {
         cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
         cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
         cout << "[MD LOG] " << get_current_time() << "\tSample rate: " << SAMPLE_RATE << endl;
         cout << "[MD LOG] " << get_current_time() << "\tMachine box:" << BOX << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" + output_path + "/energy.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" + output_path + "/particle.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"" + output_path + "/temperature.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + output_path + "/msd.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + output_path + "/velocity_autocorr.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" + _output_path + "/energy.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" + _output_path + "/particle.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"" + _output_path + "/temperature.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + _output_path + "/msd.csv\" ..." << endl;
+        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + _output_path + "/velocity_autocorr.csv\" ..." << endl;
 
         // initialize the postion and velocity of particles
         default_random_engine random_generator;
