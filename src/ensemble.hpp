@@ -255,6 +255,7 @@ void Ensemble::Andersen_thermostat(double collision_frequency) {
     default_random_engine random_generator;
     normal_distribution<double> gauss(0, sigma);
     uniform_real_distribution<double> ranf(0.0, 1.0);
+    #pragma omp parallel for schedule(dynamic)
     for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {
         if (ranf(random_generator) < collision_frequency) {
             scale_factor = gauss(random_generator) / calc_velocity(*it);
@@ -301,6 +302,7 @@ void Ensemble::iteration() {
         ensemble_potential = 0;
 
         // calculate acceleration of step B in neighbor list
+        #pragma omp parallel for schedule(dynamic)
         for (int i = 0; i < nlist.nlist.size(); ++i) {
             for (auto j = nlist.nlist[i].begin(); j != nlist.nlist[i].end(); ++j) {
                 calc_acceleration(ensemble[i], ensemble[*j]);
@@ -316,6 +318,7 @@ void Ensemble::iteration() {
         double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
         double sumv2(0.0);
         // calculate velocity of step B
+        #pragma omp parallel for schedule(dynamic)
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             ensemble_potential += particle->potential_value;
 
@@ -354,7 +357,7 @@ void Ensemble::iteration() {
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
             }
-            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 11000) {
+            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 60000) {
                 msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
                 property.sample_velocity_autocorrelation(ensemble);
             }
