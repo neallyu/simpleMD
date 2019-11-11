@@ -42,7 +42,7 @@ public:
 
 
     void calc_velocity_autocorrelation() {
-        cout << "\r[MD LOG] " << get_current_time() << "\t" << "calculating velocity autocorrelation fuction" << endl;
+        cout << "\r[MD LOG] " << get_current_time() << "\t" << "Calculating velocity autocorrelation function" << endl;
         double ITERATION_PERCENTAGE(0);
         #pragma omp parallel for schedule(dynamic)
         for (int t_frame = 0; t_frame < Velocity.size(); ++t_frame) {
@@ -57,6 +57,7 @@ public:
             ITERATION_PERCENTAGE = ((float) t_frame / (float) Velocity.size()) * 100;
             cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed\t" << flush;
         }
+        cout << endl;
     }
 
 
