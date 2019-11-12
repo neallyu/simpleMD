@@ -18,8 +18,8 @@ def energy_plot(path, input_filename):
     ax.plot(time, kinetic, color="blue", label="kinetic", linestyle="-.")
     ax.plot(time, total_energy, label="total energy", color="green")
 
-    ax.set_xlabel("time/s")
-    ax.set_ylabel("energy/J")
+    ax.set_xlabel("time")
+    ax.set_ylabel("energy")
 
     plt.legend()
     plt.savefig(path + input_filename[:-4] + ".png")
@@ -36,8 +36,8 @@ def temperature_plot(path, input_filename):
 
     ax.plot(time, temperature, color="orange", label="temperature")
 
-    ax.set_xlabel("time/s")
-    ax.set_ylabel("temperature/K")
+    ax.set_xlabel("time")
+    ax.set_ylabel("temperature")
 
     plt.legend()
     plt.savefig(path + input_filename[:-4] + ".png")
@@ -67,24 +67,24 @@ def particle_plot(path, input_filename):
     plt1.plot(time, pos_x, color="orange", label="position_x", linestyle=":")
     plt1.plot(time, pos_y, color="blue", label="position_y", linestyle="-.")
     plt1.plot(time, pos_z, label="position_z", color="green")
-    plt1.set_xlabel("time/s")
-    plt1.set_ylabel("position/m")
+    plt1.set_xlabel("time")
+    plt1.set_ylabel("position")
     plt1.legend()
 
     plt2 = plt.subplot(132)
     plt2.plot(time, v_x, color="orange", label="v_x", linestyle=":")
     plt2.plot(time, v_y, color="blue", label="v_y", linestyle="-.")
     plt2.plot(time, v_z, label="v_z", color="green")
-    plt2.set_xlabel("time/s")
-    plt2.set_ylabel("velocity/(m/s)")
+    plt2.set_xlabel("time")
+    plt2.set_ylabel("velocity")
     plt2.legend()
 
     plt3 = plt.subplot(133)
     plt3.plot(time, a_x, color="orange", label="a_x", linestyle=":")
     plt3.plot(time, a_y, color="blue", label="a_y", linestyle="-.")
     plt3.plot(time, a_z, label="a_z", color="green")
-    plt3.set_xlabel("time/s")
-    plt3.set_ylabel("acceleration/(m/s2)")
+    plt3.set_xlabel("time")
+    plt3.set_ylabel("acceleration")
     plt3.legend()
 
     plt.savefig(path + input_filename[:-4] + ".png")
@@ -124,8 +124,8 @@ def msd_plot(path, input_filename):
 
     ax.plot(time, msd, color="orange", label="mean squared displacement")
 
-    ax.set_xlabel("time/s")
-    ax.set_ylabel("MSD/m^2")
+    ax.set_xlabel("time")
+    ax.set_ylabel("MSD")
 
     plt.legend()
     plt.savefig(path + input_filename[:-4] + ".png")
@@ -143,7 +143,7 @@ def velocity_autocorr_plot(path, input_filename):
 
     ax.plot(time, velocity_autocorr, color="orange", label="velocity autocorrelation function")
 
-    ax.set_xlabel("time/s")
+    ax.set_xlabel("time")
     ax.set_ylabel("velocity autocorrelation")
 
     plt.legend()
@@ -154,7 +154,7 @@ def velocity_autocorr_plot(path, input_filename):
 def mk_plot(path, filename, plot_function):
     print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Plotting", filename)
     plot_function(path, filename)
-    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to", filename)
+    print("[MD Script]", time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), "Saved to", filename[:-4] + ".png")
 
 
 if __name__ == "__main__":

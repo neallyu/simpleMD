@@ -1,0 +1,7 @@
+Particle_number          64
+Init_Temperatrue         1
+Temperature              1
+Time_interval            0.0001
+Equilibration_time       1
+Total_time               10
+Box_size                 4
