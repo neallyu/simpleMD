@@ -69,12 +69,12 @@ void read_input_reduced_unit(int argc, char *argv[]){
 
     cout << "[MD LOG] " << get_current_time() << "\tParameters is successfully inputed" << endl;
     cout << "[MD LOG] " << get_current_time() << "\tparticle number: " << particle_number << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tinitial temperature: " << init_temp << " K" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tequilibration temperature: " << set_temp << " K" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << " fs" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tequilibration time: " << equilibration_time << " ns" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << total_time << " ns" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tbox size: " << box << " Angstrom" << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tinitial temperature: " << init_temp << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tequilibration temperature: " << set_temp << endl;
+    cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tequilibration time: " << equilibration_time << endl;
+    cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << total_time << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tbox size: " << box << endl;
 
     cout << "[MD LOG] " << get_current_time() << "\tInitializing calculation..." << endl;
     

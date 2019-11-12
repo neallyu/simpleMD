@@ -141,7 +141,9 @@ def velocity_autocorr_plot(path, input_filename):
     fig = plt.figure(1, dpi=500, figsize=(7.4, 4.8), facecolor="white")
     ax = fig.add_subplot(111)
 
+    ax.plot([0 for i in time], color="black")
     ax.plot(time, velocity_autocorr, color="orange", label="velocity autocorrelation function")
+    plt.axis([0, len(time), -0.2, 1.1])
 
     ax.set_xlabel("time")
     ax.set_ylabel("velocity autocorrelation")

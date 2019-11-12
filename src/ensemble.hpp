@@ -471,7 +471,12 @@ void Ensemble::iteration() {
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
             }
-            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 11000) {
+            unsigned long VACF_sample_iteration = 5000;
+            if (EQUILIBRATION_ITERATION + 10000 + VACF_sample_iteration >= ITERATION) {
+                cerr << "[MD ERR]\t" << get_current_time() << "\tIncorrect VACF sample iteration" << endl;
+                break;
+            }
+            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 10000 + VACF_sample_iteration) {
                 msd_output(i, property.calc_mean_square_particle_displacement(ensemble), msd_out);
                 property.sample_velocity_autocorrelation(ensemble);
             }
@@ -479,7 +484,7 @@ void Ensemble::iteration() {
 
         if (i % SAMPLE_RATE == 0) {
             ITERATION_PERCENTAGE = ((float) i / (float) ITERATION) * 100;
-            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed\t" << flush;
+            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed " << flush;
             temperature_output(i, temperature_out);
         }
         ++i;
