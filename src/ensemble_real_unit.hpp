@@ -27,10 +27,6 @@ public:
     Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, double set_temp, double time_interval, 
     double equilibration_time, double total_time, double box, string _output_path);
 
-    // reduced unit
-    Ensemble(const unsigned _particle_number, double init_temp, double set_temp, double time_interval, 
-    double equilibration_time, double total_time, double box, string _output_path);
-
     // close file stream
     ~Ensemble();
 
@@ -66,7 +62,7 @@ private:
     const unsigned long EQUILIBRATION_ITERATION;    // iteration cycles of equilibration
     const unsigned long ITERATION;                  // total iteration cycles
     const unsigned long SAMPLE_RATE;                // sample rate defined as (iteration / 1000) such that the result contains 1000 points
-    float ITERATION_PERCENTAGE;                     // percentage of main iteration
+    float ITERATION_PERCENTAGE;                      // percentage of main iteration
     unsigned particle_number;                       // particle number
     vector<Particle> ensemble;                      // main container of the particle ensemble
     const double rcut;                              // cutoff distance defined as 2.5 (reduced unit)
@@ -84,104 +80,6 @@ private:
     ofstream msd_out;                               // output file stream of mean square displacement
 };
 
-// reduced unit
-Ensemble::Ensemble(const unsigned _particle_number, double init_temp, double set_temp, double time_interval, 
-    double equilibration_time, double total_time, double box, string _output_path): 
-    particle_number(_particle_number), unit(1, 1, 1), 
-    INIT_TEMP(init_temp),
-    SET_TEMP(set_temp), 
-    TEMP(0),
-    BOX(box), 
-    TIME_INTERVAL(time_interval), 
-    EQUILIBRATION_TIME(equilibration_time),
-    TOTAL_TIME(total_time), 
-    EQUILIBRATION_ITERATION(EQUILIBRATION_TIME / TIME_INTERVAL),
-    ITERATION(TOTAL_TIME / TIME_INTERVAL),
-    SAMPLE_RATE(ITERATION / 1000),
-    ensemble(_particle_number, Particle(TIME_INTERVAL)),
-    rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
-    nlist(ensemble, BOX, rlist2), 
-    rdf(1000, BOX, _output_path), 
-    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, _output_path),
-    ensemble_out(_output_path + "/energy.csv"),
-    particle_out(_output_path + "/particle.csv"),
-    temperature_out(_output_path + "/temperature.csv"),
-    msd_out(_output_path + "/msd.csv")
-    {
-        cout << "[MD LOG] " << get_current_time() << "\tMachine time interval: " << TIME_INTERVAL << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tEquilibration iteration: " << EQUILIBRATION_ITERATION << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tIteration: " << ITERATION << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tSample rate: " << SAMPLE_RATE << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tMachine box:" << BOX << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tEnsemble energy data output to \"" + _output_path + "/energy.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tParticle trajectory data output to \"" + _output_path + "/particle.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tTemperature data output to \"" + _output_path + "/temperature.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + _output_path + "/msd.csv\" ..." << endl;
-        cout << "[MD LOG] " << get_current_time() << "\tDiffusion data output to \"" + _output_path + "/velocity_autocorr.csv\" ..." << endl;
-
-        // initialize the postion and velocity of particles
-        default_random_engine random_generator;
-        uniform_real_distribution<double> displacement(0.0, 1.0);  //distribution generator
-        normal_distribution<double> norm_dis(0.0, 1.0);
-        double sumv_x(0.0), sumv_y(0.0), sumv_z(0.0);
-        double sumv2(0.0);
-        int i = 0; // for lattice pos
-        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            particle->lattice_pos(i + 1);
-            ++i;
-            particle->pos_x += 0.01 * (displacement(random_generator) - 0.5); // cout << "Initial position: " << particle->pos_x << "\t";
-            particle->pos_y += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_y << "\t";
-            particle->pos_z += 0.01 * (displacement(random_generator) - 0.5); // cout << particle->pos_z << endl;
-            particle->v_x = norm_dis(random_generator);
-            particle->v_y = norm_dis(random_generator);
-            particle->v_z = norm_dis(random_generator);
-
-            sumv_x += particle->v_x;
-            sumv_y += particle->v_y;
-            sumv_z += particle->v_z;
-            sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
-        }
-        sumv_x /= particle_number;
-        sumv_y /= particle_number;
-        sumv_z /= particle_number;
-        sumv2 /= particle_number;
-        double fs = sqrt(3 * INIT_TEMP / sumv2);
-        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            particle->v_x = (particle->v_x - sumv_x) * fs; // cout << "Initial velocity: " << particle->v_x << "\t";
-            particle->v_y = (particle->v_y - sumv_y) * fs; // cout << particle->v_y << "\t";
-            particle->v_z = (particle->v_z - sumv_z) * fs; // cout << particle->v_z << endl;
-        }
-
-        // Initialize neighborlist
-        nlist.update_neighbor_list(ensemble);
-        need_update_nlist = false;
-
-        // Initialize acceleartion in step A
-        for (auto particle1 = ensemble.begin(); particle1 != ensemble.end(); ++particle1) {
-            for (auto particle2 = particle1 + 1; particle2 != ensemble.end(); ++particle2) {
-                calc_acceleration(*particle1, *particle2);
-                particle1->a_x_A = particle1->a_x_B;
-                particle1->a_y_A = particle1->a_y_B;
-                particle1->a_z_A = particle1->a_z_B;
-                particle2->a_x_A = particle2->a_x_B;
-                particle2->a_y_A = particle2->a_y_B;
-                particle2->a_z_A = particle2->a_z_B;
-            }
-        }
-
-        // execute movement and initialize a_B
-        for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
-            particle->movement();
-            particle->velocity();
-            particle->a_x_A = particle->a_x_B;
-            particle->a_y_A = particle->a_y_B;
-            particle->a_z_A = particle->a_z_B;
-            particle->a_x_B = 0;
-            particle->a_y_B = 0;
-            particle->a_z_B = 0;
-            particle->potential_value = 0;
-        }
-}
 
 // box(angstrom), temp(K), sigma(angstrom), epsilon(kJ/mol), mass(g/mol)
 Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon, double mass, double init_temp, 
@@ -202,7 +100,7 @@ Ensemble::Ensemble(const unsigned _particle_number, double sigma, double epsilon
     rcut(2.5), ecut(-0.016316891), rlist2(12.25), 
     nlist(ensemble, BOX, rlist2), 
     rdf(1000, BOX, _output_path), 
-    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, _output_path),
+    property((ITERATION - EQUILIBRATION_ITERATION) / SAMPLE_RATE + 1, unit.real_time(TIME_INTERVAL), _output_path),
     ensemble_out(_output_path + "/energy.csv"),
     particle_out(_output_path + "/particle.csv"),
     temperature_out(_output_path + "/temperature.csv"),
@@ -376,7 +274,7 @@ void Ensemble::Andersen_thermostat(double collision_frequency) {
 //     fout << i * unit.real_time(TIME_INTERVAL) << "    " << unit.real_energy(ensemble_potential) 
 //         << "    " << unit.real_energy(ensemble_kinetic) << "    " 
 //         << unit.real_energy(ensemble_potential + ensemble_kinetic) << endl;
-// }
+// } 
 void Ensemble::energy_output(unsigned long i, ofstream& fout) {
     fout << i << "    " << ensemble_potential << "    " << ensemble_kinetic << "    " 
         << ensemble_potential + ensemble_kinetic << endl;
@@ -392,6 +290,7 @@ void Ensemble::energy_output(unsigned long i, ofstream& fout) {
 //         << unit.real_energy(particle.potential_value) << "    " << unit.real_energy(particle.kinetic_value) 
 //         << "    " << unit.real_energy(particle.potential_value + particle.kinetic_value) << endl;
 // }
+
 void Ensemble::particle_movement_output(unsigned long i, Particle& particle, ofstream& fout) {
     fout << i * TIME_INTERVAL << "    " << particle.pos_x << "    " << particle.pos_y << "    " << particle.pos_z << "    " 
         << particle.v_x << "    " << particle.v_y << "    " << particle.v_z << "    " << particle.a_x_A << "    " 

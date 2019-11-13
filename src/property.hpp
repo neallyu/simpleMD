@@ -14,7 +14,8 @@ using namespace std;
 class Property {
 
 public:
-    Property(int _sample_point, string _output_path):v_index(0), autocorr(0), v_avg(0),
+    Property(int _sample_point, double _time_interval, string _output_path):
+        v_index(0), autocorr(0), v_avg(0), TIME_INTERVAL(_time_interval),
         velocity_autocorr_out(_output_path + "/velocity_autocorr.csv") { }
 
     void initalize(vector<Particle> ensemble) {
@@ -70,7 +71,7 @@ public:
 
     void velocity_autocorr_output() {
         for (int i = 0; i < velocity_autocorr.size(); ++i){
-            velocity_autocorr_out << i << "    " << velocity_autocorr[i] << endl;
+            velocity_autocorr_out << i * TIME_INTERVAL << "    " << velocity_autocorr[i] << endl;
         }
         velocity_autocorr_out.close();
     }
@@ -83,6 +84,7 @@ private:
     double v_avg;
     double autocorr;
     vector<double> velocity_autocorr;
+    double TIME_INTERVAL;
     ofstream velocity_autocorr_out;
 };
 

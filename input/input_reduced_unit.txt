@@ -1,7 +1,7 @@
-Particle_number          512
+Particle_number          64
 Init_Temperatrue         1
 Temperature              1
 Time_interval            0.0001
 Equilibration_time       10
 Total_time               100
-Box_size                 8
+Box_size                 4

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "particle.hpp"
-#include "ensemble.hpp"
+#include "ensemble_reduced_unit.hpp"
 
 using namespace std;
 
