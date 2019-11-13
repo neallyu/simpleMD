@@ -13,7 +13,9 @@ cd script
 pip3 install -r requirements.txt
 ```
 ## Input parameter
-All parameters are preset in input/input.txt
+All parameters are preset in input/input_real_unit.txt and input_real_unit.txt
+For calculating under real unit, you need uncomment the corresponding code in main.cpp
+Parameters in input/input_real_unit.txt
 ```
 Molecule                 Argon(Ar)
 Particle_number          512
@@ -27,6 +29,17 @@ Equilibration_time(ns)   0.005
 Total_time(ns)           0.05
 Box_size(Angstrom)       30
 ```
+Parameters in input/input_reduced_unit.txt
+```
+Particle_number          512
+Init_Temperatrue         1
+Temperature              1
+Time_interval            0.0001
+Equilibration_time       10
+Total_time               100
+Box_size                 8
+```
+
 ## Usage
 ```
 cd src

@@ -88,7 +88,7 @@ void read_input_reduced_unit(int argc, char *argv[]){
 }
 
 
-// void read_input(int argc, char* argv[]) {
+// void read_input_real_unit(int argc, char* argv[]) {
 //     string molecule;
 //     unsigned particle_number;
 //     double sigma;

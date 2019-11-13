@@ -356,6 +356,10 @@ void Ensemble::iteration() {
         // after equilibration iteration of initial equilibrition, control temperature by rescaling
         if (i == EQUILIBRATION_ITERATION) {
             rescale_temperature();
+        }
+
+        // initialize start status of MSD calculation
+        if (i == EQUILIBRATION_ITERATION + 10000) {
             property.initalize(ensemble);
         }
 
@@ -366,7 +370,7 @@ void Ensemble::iteration() {
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
             }
-            unsigned long VACF_sample_iteration = 5000;
+            unsigned long VACF_sample_iteration = 15000;
             if (EQUILIBRATION_ITERATION + 10000 + VACF_sample_iteration >= ITERATION) {
                 cerr << "[MD ERR]\t" << get_current_time() << "\tIncorrect VACF sample iteration" << endl;
                 break;
