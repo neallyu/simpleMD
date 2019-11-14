@@ -48,7 +48,7 @@ public:
     void normalize(int natoms) {
         double norm_factor = 4.0 / 3.0 * M_PI * natoms * (natoms-1.0) * n * pow(bin_width, 3) / pow(BOX, 3);
 
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for (int i = 0; i < nbins; i++)
         {
             double r = (double) i;

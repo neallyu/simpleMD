@@ -17,9 +17,6 @@ public:
     // Copy initializer
     Particle(const Particle&);
 
-    // initialize lattice postion of particle
-    inline void lattice_pos(int); 
-    
     // calculate x from v and a
     inline void movement();
 
@@ -65,28 +62,6 @@ Particle::Particle(const Particle& other): v_x(other.v_x), v_y(other.v_y), v_z(o
     pos_z(other.pos_z), a_x_B(other.a_x_B), a_y_B(other.a_y_B), a_z_B(other.a_z_B), time_interval(other.time_interval) { }
 
 
-void Particle::lattice_pos(int n) {
-    int i;
-    for (i = 0; i * i * i < n; ++i);
-    int j = n - (i - 1)*(i - 1)*(i - 1);
-    if (j <= i * i) {
-        pos_x = i - 1;
-        pos_y = (j - 1) / i;
-        pos_z = (j - 1) % i;
-    }
-    else if (j <= i * (2 * i - 1)) {
-        pos_x = (j - i * i - 1) / i;
-        pos_y = i - 1;
-        pos_z = (j - i * i - 1) % i;
-    }
-    else {
-        pos_x = (j - i * (2 * i - 1) - 1) / (i - 1);
-        pos_y = (j - i * (2 * i - 1) - 1) % (i - 1);
-        pos_z = i - 1;
-    }
-}
-    
-    
 // execute movement
 void Particle::movement() {
     // Use velocity verlet algorithm

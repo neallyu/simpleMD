@@ -15,7 +15,7 @@ void read_input_reduced_unit(int argc, char *argv[]){
     double time_interval;
     double equilibration_time;
     double total_time;
-    double box;
+    double rho;
 
     try {
         ifstream input;
@@ -47,7 +47,7 @@ void read_input_reduced_unit(int argc, char *argv[]){
                     total_time = stod(parameter);
                     break;
                 case 13:
-                    box = stod(parameter);
+                    rho = stod(parameter);
                     break;
             }
             ++i;
@@ -68,18 +68,17 @@ void read_input_reduced_unit(int argc, char *argv[]){
     }
 
     cout << "[MD LOG] " << get_current_time() << "\tParameters is successfully inputed" << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tparticle number: " << particle_number << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tinitial temperature: " << init_temp << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tequilibration temperature: " << set_temp << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttime interval: " << time_interval << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tequilibration time: " << equilibration_time << endl;
-    cout << "[MD LOG] " << get_current_time() << "\ttotal time: " << total_time << endl;
-    cout << "[MD LOG] " << get_current_time() << "\tbox size: " << box << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tParticle number: " << particle_number << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tInitial temperature: " << init_temp << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tEquilibration temperature: " << set_temp << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tEquilibration time: " << equilibration_time << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tTotal time: " << total_time << endl;
+    cout << "[MD LOG] " << get_current_time() << "\tDensity: " << rho << endl;
 
     cout << "[MD LOG] " << get_current_time() << "\tInitializing calculation..." << endl;
     
     // Initialize the ensemble
-    Ensemble ensemble1(particle_number, init_temp, set_temp, time_interval, equilibration_time, total_time, box, argv[2]);
+    Ensemble ensemble1(particle_number, init_temp, set_temp, time_interval, equilibration_time, total_time, rho, argv[2]);
 
     cout << "[MD LOG] " <<  get_current_time() << "\tStarting main interation..." << endl;
     ensemble1.iteration();

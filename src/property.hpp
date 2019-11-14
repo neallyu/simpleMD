@@ -14,8 +14,8 @@ using namespace std;
 class Property {
 
 public:
-    Property(int _sample_point, double _time_interval, string _output_path):
-        v_index(0), autocorr(0), v_avg(0), TIME_INTERVAL(_time_interval),
+    Property(int _particle_number, double _time_interval, string _output_path):
+        v_index(0), autocorr(0), v_avg(0), TIME_INTERVAL(_time_interval), particle_number(_particle_number),
         velocity_autocorr_out(_output_path + "/velocity_autocorr.csv") { }
 
     void initalize(vector<Particle> ensemble) {
@@ -27,12 +27,14 @@ public:
     double calc_mean_square_particle_displacement(vector<Particle>& ensemble) {
         double MSD(0);
         for (int i = 0; i < ensemble.size(); ++i) {
-            MSD += pow((ensemble[i].pos_x - Start_status[i].pos_x), 2);
+            MSD += (pow((ensemble[i].pos_x - Start_status[i].pos_x), 2) 
+                + pow((ensemble[i].pos_y - Start_status[i].pos_y), 2)
+                + pow((ensemble[i].pos_z - Start_status[i].pos_z), 2));
         }
-        return MSD / ensemble.size();
+        return MSD / particle_number;
     }
 
-
+    // record v_x of each particle at the moment
     void sample_velocity_autocorrelation(vector<Particle> &ensemble) {
         Velocity.resize(v_index + 1);
         for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {
@@ -47,9 +49,11 @@ public:
         cout << "\r[MD LOG] " << get_current_time() << "\t" << "Calculating velocity autocorrelation function" << endl;
         double ITERATION_PERCENTAGE(0);
         double V_VARIANCE(0);
-        double particle_number = Velocity[0].size();
         v_avg /= (v_index * particle_number);
-        #pragma omp parallel for schedule(dynamic)
+        // iteration counter
+        int I = 0;
+        int TOTAL = v_index * (v_index + 1) * particle_number;
+        // #pragma omp parallel for
         for (int t_frame = 0; t_frame < v_index; ++t_frame) {
             for (int particle_index = 0; particle_index < Velocity[0].size(); ++ particle_index) {
                 for (int n = 0; n < v_index - t_frame; ++n) {
@@ -59,8 +63,9 @@ public:
             }
             velocity_autocorr.push_back(autocorr);
             autocorr = 0;
-            ITERATION_PERCENTAGE = ((float) t_frame / (float) v_index) * 100;
-            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed " << flush;
+            ITERATION_PERCENTAGE = ((float) I / (float) TOTAL) * 100;
+            I++;
+            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed       " << flush;
         }
         cout << endl;
         for (auto it = velocity_autocorr.begin(); it != velocity_autocorr.end(); ++it) {
@@ -81,6 +86,7 @@ private:
     vector<Particle> Start_status;
     vector<vector <Particle> > Velocity;
     int v_index;
+    int particle_number;
     double v_avg;
     double autocorr;
     vector<double> velocity_autocorr;

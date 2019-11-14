@@ -31,7 +31,7 @@ Neighborlist::Neighborlist(vector<Particle> &ensemble, double box, double _rlist
     }
 
 void Neighborlist::update_neighbor_list(vector<Particle> &ensemble) {
-    #pragma omp parallel
+    // #pragma omp parallel
     for (int i = 0; i < nlist.size(); i++)
     {
         nlist[i].resize(0);
@@ -39,7 +39,7 @@ void Neighborlist::update_neighbor_list(vector<Particle> &ensemble) {
 
 // Atoms are not double counted in the neighbor list. That is, when atom j
 // is on atom i's list, the opposite is not true.
-    #pragma omp parallel
+    // #pragma omp parallel
     for (int i = 0; i < nlist.size() - 1; ++i) {
         // cout << "Particle (" << i << "):";
         for (int j = i + 1; j < nlist.size(); ++j) {

@@ -123,6 +123,7 @@ def msd_plot(path, input_filename):
     ax = fig.add_subplot(111)
 
     ax.plot(time, msd, color="orange", label="mean squared displacement")
+    ax.axis([0, time[-1], 0, msd[-1]])
 
     ax.set_xlabel("time")
     ax.set_ylabel("MSD")
@@ -143,7 +144,7 @@ def velocity_autocorr_plot(path, input_filename):
 
     ax.plot([0 for i in time], color="black")
     ax.plot(time, velocity_autocorr, color="orange", label="velocity autocorrelation function")
-    plt.axis([0, len(time), -0.2, 1.1])
+    ax.axis([0, time[-1], -0.25, 1.1])
 
     ax.set_xlabel("time")
     ax.set_ylabel("velocity autocorrelation")
