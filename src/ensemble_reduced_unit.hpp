@@ -270,7 +270,6 @@ void Ensemble::Andersen_thermostat(double collision_frequency) {
     default_random_engine random_generator;
     normal_distribution<double> gauss(0, sigma);
     uniform_real_distribution<double> ranf(0.0, 1.0);
-    // #pragma omp parallel for schedule(dynamic)
     for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {
         if (ranf(random_generator) < collision_frequency) {
             scale_factor = gauss(random_generator) / calc_velocity(*it);
@@ -315,7 +314,6 @@ void Ensemble::iteration() {
         ensemble_potential = 0;
 
         // calculate acceleration of step B in neighbor list
-
         omp_set_num_threads(32);
         #pragma omp parallel for
         for (int i = 0; i < nlist.nlist.size(); ++i) {
@@ -335,17 +333,14 @@ void Ensemble::iteration() {
         // calculate velocity of step B
         for (auto particle = ensemble.begin(); particle != ensemble.end(); ++particle) {
             ensemble_potential += particle->potential_value;
-
             // get the instaneous temperature
             sumv_x += particle->v_x;
             sumv_y += particle->v_y;
             sumv_z += particle->v_z;
             sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
-
             // execute x and v propagation
             particle->movement();
             particle->velocity();
-
             // record a_A and initialize a_B
             particle->a_x_A = particle->a_x_B;
             particle->a_y_A = particle->a_y_B;
@@ -358,21 +353,22 @@ void Ensemble::iteration() {
         ensemble_kinetic = 0.5 * sumv2;
         TEMP = sumv2 / (3 * particle_number);
 
-
+        // after equilibration iteration, do measurement and temperature control
         if (i >= EQUILIBRATION_ITERATION) {
             // initialize start status of MSD calculation
-            if (i == EQUILIBRATION_ITERATION + 10000) {
+            double VACF_sample_time = 2.0;
+            if (i == EQUILIBRATION_ITERATION + int (1 / TIME_INTERVAL)) {
                 property.initalize(ensemble);
+                cout << endl << "[MD LOG] " << get_current_time() << "\tVACF will sample for " << (int) (VACF_sample_time / TIME_INTERVAL) << " iterations" << endl;
             }
             // sample for VACF function
-            unsigned long VACF_sample_iteration = 15000;
-            if (EQUILIBRATION_ITERATION + 10000 + VACF_sample_iteration >= ITERATION) {
-                cerr << "[MD ERR]\t" << get_current_time() << "\tIncorrect VACF sample iteration" << endl;
+            if (EQUILIBRATION_ITERATION + (1 + VACF_sample_time) / TIME_INTERVAL >= ITERATION) {
+                cerr << endl << "[MD ERR] " << get_current_time() << "\tIncorrect VACF sample iteration" << endl;
                 break;
             }
-            if (i > EQUILIBRATION_ITERATION + 10000 && i <= EQUILIBRATION_ITERATION + 10000 + VACF_sample_iteration) {
-                msd_output(i - EQUILIBRATION_ITERATION - 10000, property.calc_mean_square_particle_displacement(ensemble), msd_out);
-                property.sample_velocity_autocorrelation(ensemble);
+            if (i > EQUILIBRATION_ITERATION + 1 / TIME_INTERVAL && i <= EQUILIBRATION_ITERATION + (1 + VACF_sample_time) / TIME_INTERVAL) {
+                msd_output(i - EQUILIBRATION_ITERATION - 1 / TIME_INTERVAL, property.calc_mean_square_particle_displacement(ensemble), msd_out);
+                // property.sample_velocity_autocorrelation(ensemble);
             }
 
             if (i % SAMPLE_RATE == 0) {
@@ -385,6 +381,7 @@ void Ensemble::iteration() {
             }
         }
 
+        // output progress
         if (i % SAMPLE_RATE == 0) {
             ITERATION_PERCENTAGE = ((float) i / (float) ITERATION) * 100;
             cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed " << flush;
@@ -395,8 +392,8 @@ void Ensemble::iteration() {
     cout << endl;   // output a new line for the progess log
     rdf.normalize(particle_number);
     rdf.output();
-    property.calc_velocity_autocorrelation();
-    property.velocity_autocorr_output();
+    // property.calc_velocity_autocorrelation();
+    // property.velocity_autocorr_output();
 }
 
 

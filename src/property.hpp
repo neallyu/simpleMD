@@ -18,7 +18,7 @@ public:
         v_index(0), autocorr(0), v_avg(0), TIME_INTERVAL(_time_interval), particle_number(_particle_number),
         velocity_autocorr_out(_output_path + "/velocity_autocorr.csv") { }
 
-    void initalize(vector<Particle> ensemble) {
+    void initalize(vector<Particle>& ensemble) {
         for (auto it = ensemble.begin(); it != ensemble.end(); ++it) {
             Start_status.push_back(*it);
         }
@@ -31,7 +31,7 @@ public:
                 + pow((ensemble[i].pos_y - Start_status[i].pos_y), 2)
                 + pow((ensemble[i].pos_z - Start_status[i].pos_z), 2));
         }
-        return MSD / particle_number;
+        return (MSD / (double) particle_number);
     }
 
     // record v_x of each particle at the moment
@@ -51,23 +51,24 @@ public:
         double V_VARIANCE(0);
         v_avg /= (v_index * particle_number);
         // iteration counter
-        int I = 0;
-        int TOTAL = v_index * (v_index + 1) * particle_number;
+        unsigned long I = 0;
+        unsigned long TOTAL = v_index * (v_index + 1) * particle_number;
         // #pragma omp parallel for
         for (int t_frame = 0; t_frame < v_index; ++t_frame) {
             for (int particle_index = 0; particle_index < Velocity[0].size(); ++ particle_index) {
                 for (int n = 0; n < v_index - t_frame; ++n) {
                     autocorr += ((Velocity[n][particle_index].v_x - v_avg) * (Velocity[n + t_frame][particle_index].v_x - v_avg));
+                    ITERATION_PERCENTAGE = ((double) I / (double) TOTAL) * 100;
+                    I++;
+                    cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed       " << flush;
                 }
                 V_VARIANCE += pow(Velocity[t_frame][particle_index].v_x - v_avg, 2);
             }
             velocity_autocorr.push_back(autocorr);
             autocorr = 0;
-            ITERATION_PERCENTAGE = ((float) I / (float) TOTAL) * 100;
-            I++;
-            cout << "\r[MD LOG] " << get_current_time() << "\t" << ITERATION_PERCENTAGE << "\% completed       " << flush;
+
         }
-        cout << endl;
+        // cout << endl;
         for (auto it = velocity_autocorr.begin(); it != velocity_autocorr.end(); ++it) {
             *it /= V_VARIANCE;
         }

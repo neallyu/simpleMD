@@ -23,24 +23,20 @@ public:
     void sample(vector<Particle> &ensemble) {
         ++n;
 
-        // #pragma omp parallel
-        {
-            vector<double> g_thread(nbins, 0.0);
+        vector<double> g_thread(nbins, 0.0);
 
-            // #pragma omp parallel for
-            for (unsigned int i = 0; i < ensemble.size() - 1; ++i) {
-                for (unsigned int j = i + 1; j < ensemble.size(); ++j) {
-                    double d = distance(ensemble[i], ensemble[j], BOX);
-                    if (d < BOX / 2.0) {
-                        int ig = d / bin_width;
-                        g_thread[ig] += 2.0;
-                    }
+        for (unsigned int i = 0; i < ensemble.size() - 1; ++i) {
+            for (unsigned int j = i + 1; j < ensemble.size(); ++j) {
+                double d = distance(ensemble[i], ensemble[j], BOX);
+                if (d < BOX / 2.0) {
+                    int ig = d / bin_width;
+                    g_thread[ig] += 2.0;
                 }
             }
+        }
 
-            for (int i = 0; i < nbins; i++) {
-                g[i] += g_thread[i];
-            }
+        for (int i = 0; i < nbins; i++) {
+            g[i] += g_thread[i];
         }
     }
 
@@ -48,7 +44,6 @@ public:
     void normalize(int natoms) {
         double norm_factor = 4.0 / 3.0 * M_PI * natoms * (natoms-1.0) * n * pow(bin_width, 3) / pow(BOX, 3);
 
-        // #pragma omp parallel for
         for (int i = 0; i < nbins; i++)
         {
             double r = (double) i;
