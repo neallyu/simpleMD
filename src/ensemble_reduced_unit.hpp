@@ -337,7 +337,7 @@ void Ensemble::iteration() {
             sumv_x += particle->v_x;
             sumv_y += particle->v_y;
             sumv_z += particle->v_z;
-            sumv2 += sumv_x * sumv_x + sumv_y * sumv_y + sumv_z * sumv_z;
+            sumv2 += particle->v_x * particle->v_x + particle->v_y * particle->v_y + particle->v_z * particle->v_z;
             // execute x and v propagation
             particle->movement();
             particle->velocity();
@@ -352,6 +352,11 @@ void Ensemble::iteration() {
         }
         ensemble_kinetic = 0.5 * sumv2;
         TEMP = sumv2 / (3 * particle_number);
+
+        // if (i == EQUILIBRATION_ITERATION) {
+        //     // rescale temperature
+        //     rescale_temperature(SET_TEMP);
+        // }
 
         // after equilibration iteration, do measurement and temperature control
         if (i >= EQUILIBRATION_ITERATION) {
@@ -375,9 +380,7 @@ void Ensemble::iteration() {
                 particle_movement_output(i, ensemble[1], particle_out);
                 energy_output(i, ensemble_out);
                 rdf.sample(ensemble);
-                // rescale temperature
-                rescale_temperature(SET_TEMP);
-                // Andersen_thermostat(1e-4);
+                Andersen_thermostat(5e-2);
             }
         }
 

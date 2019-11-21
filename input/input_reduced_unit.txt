@@ -1,6 +1,6 @@
-Particle_number          512
-Init_Temperatrue         1.5
-Temperature              1.5
+Particle_number          108
+Init_Temperatrue         2
+Temperature              2
 Time_interval            0.0001
 Equilibration_time       2
 Total_time               6
