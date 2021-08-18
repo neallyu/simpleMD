@@ -7,7 +7,6 @@
 #include <iostream>
 #include <cmath>
 #include <random>
-#include <omp.h>
 #include "particle.hpp"
 #include "neighborlist.hpp"
 #include "radial_distribution_function.hpp"
@@ -314,8 +313,6 @@ void Ensemble::iteration() {
         ensemble_potential = 0;
 
         // calculate acceleration of step B in neighbor list
-        omp_set_num_threads(32);
-        #pragma omp parallel for
         for (int i = 0; i < nlist.nlist.size(); ++i) {
             for (auto j = nlist.nlist[i].begin(); j != nlist.nlist[i].end(); ++j) {
                 calc_acceleration(ensemble[i], ensemble[*j]);
